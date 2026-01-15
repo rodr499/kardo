@@ -11,6 +11,7 @@ interface Profile {
   display_name: string | null;
   title: string | null;
   phone: string | null;
+  country_code: string | null;
   email: string | null;
   website: string | null;
 }
@@ -98,12 +99,12 @@ export default function ProfilePage() {
       }
 
       if (profileData) {
-        // Parse country code from phone if it exists
-        let countryCode = "+1";
+        // Use country_code from database, or parse from phone if country_code doesn't exist yet
+        let countryCode = profileData.country_code || "+1";
         let phoneNumber = profileData.phone || "";
 
-        if (phoneNumber && phoneNumber.startsWith("+")) {
-          // Try to extract country code (common formats: +1, +44, +123)
+        // If country_code is not set but phone starts with +, parse it (migration path)
+        if (!profileData.country_code && phoneNumber && phoneNumber.startsWith("+")) {
           const match = phoneNumber.match(/^(\+\d{1,3})/);
           if (match) {
             countryCode = match[1];
@@ -188,10 +189,8 @@ export default function ProfilePage() {
         }
       }
 
-      // Combine country code and phone number
-      const fullPhone = formData.phone.trim()
-        ? `${formData.countryCode}${formData.phone.trim()}`
-        : null;
+      // Store phone number without country code (country code stored separately)
+      const phoneNumber = formData.phone.trim() || null;
 
       const { error: updateError } = await supabase
         .from("profiles")
@@ -200,7 +199,8 @@ export default function ProfilePage() {
           handle: formData.handle.trim(),
           display_name: formData.display_name.trim() || null,
           title: formData.title.trim() || null,
-          phone: fullPhone,
+          phone: phoneNumber,
+          country_code: formData.countryCode || "+1",
           email: formData.email.trim() || null,
           website: formData.website.trim() || null,
         });
@@ -210,8 +210,14 @@ export default function ProfilePage() {
       setSuccess(true);
       setProfile({
         id: user.id,
-        ...formData,
-      } as Profile);
+        handle: formData.handle.trim(),
+        display_name: formData.display_name.trim() || null,
+        title: formData.title.trim() || null,
+        phone: phoneNumber,
+        country_code: formData.countryCode || "+1",
+        email: formData.email.trim() || null,
+        website: formData.website.trim() || null,
+      });
 
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
@@ -234,7 +240,7 @@ export default function ProfilePage() {
       : `${window.location.origin}/u/${encodeURIComponent(handleOrCode)}`;
 
     // Try Web Share API first (if available)
-    if (navigator.share && navigator.canShare) {
+    if (navigator.share) {
       try {
         await navigator.share({
           title: isCard ? "My Kardo Card" : "My Kardo Profile",
@@ -267,11 +273,11 @@ export default function ProfilePage() {
         document.body.appendChild(textarea);
         textarea.focus();
         textarea.select();
-        
+
         try {
           const successful = document.execCommand("copy");
           document.body.removeChild(textarea);
-          
+
           if (successful) {
             setShareMessage("Link copied to clipboard!");
             setTimeout(() => setShareMessage(null), 3000);
@@ -305,7 +311,16 @@ export default function ProfilePage() {
     const currentTheme = html.getAttribute("data-theme");
     const newTheme = currentTheme === "dark" ? "light" : "dark";
     html.setAttribute("data-theme", newTheme);
+    // Persist theme preference to localStorage
+    localStorage.setItem("theme", newTheme);
   };
+
+  // Load theme preference on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    const html = document.documentElement;
+    html.setAttribute("data-theme", savedTheme);
+  }, []);
 
   if (loading) {
     return (

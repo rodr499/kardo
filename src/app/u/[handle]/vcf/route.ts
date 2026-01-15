@@ -29,7 +29,7 @@ export async function GET(
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("display_name,title,phone,email,website")
+    .select("display_name,title,phone,country_code,email,website")
     .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 
@@ -64,8 +64,13 @@ export async function GET(
   const title = clean(data.title);
   if (title) lines.push(`TITLE:${title}`);
 
+  // Combine country code and phone number for vCard
+  const countryCode = data.country_code || "+1";
   const phone = clean(data.phone);
-  if (phone) lines.push(`TEL;TYPE=CELL:${phone}`);
+  if (phone) {
+    const fullPhone = countryCode + phone;
+    lines.push(`TEL;TYPE=CELL:${fullPhone}`);
+  }
 
   const email = clean(data.email);
   if (email) lines.push(`EMAIL;TYPE=INTERNET:${email}`);

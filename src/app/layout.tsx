@@ -1,5 +1,6 @@
 import "./globals.css";
 import Nav from "@/components/nav";
+import ThemeProvider from "@/components/theme-provider";
 
 export default function RootLayout({
   children,
@@ -9,6 +10,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light">
       <body>
+        <ThemeProvider />
         <Nav />
         {children}
       </body>

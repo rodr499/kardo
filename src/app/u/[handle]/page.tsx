@@ -15,7 +15,7 @@ export default async function ProfilePage({
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("handle,display_name,title,phone,email,website")
+    .select("handle,display_name,title,phone,country_code,email,website")
     .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 
@@ -60,7 +60,7 @@ export default async function ProfilePage({
               </a>
 
               {data.phone ? (
-                <a className="btn btn-outline" href={`tel:${data.phone}`}>Call</a>
+                <a className="btn btn-outline" href={`tel:${data.country_code || "+1"}${data.phone}`}>Call</a>
               ) : null}
 
               {data.email ? (
