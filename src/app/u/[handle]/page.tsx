@@ -46,13 +46,35 @@ export default async function ProfilePage({
 
   if (!data) return notFound();
 
+  // Helper function to get initials from display name
+  const getInitials = (name: string | null) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <main className="min-h-screen p-5 bg-base-200">
       <div className="max-w-md mx-auto space-y-4">
         <div className="card bg-base-100 shadow">
           <div className="card-body">
-            <h1 className="text-2xl font-bold">{data.display_name}</h1>
-            {data.title ? <p className="text-base-content/70">{data.title}</p> : null}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="avatar placeholder">
+                <div className="bg-primary text-primary-content rounded-full w-16 h-16 flex items-center justify-center">
+                  <span className="text-2xl font-bold">
+                    {getInitials(data.display_name)}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">{data.display_name}</h1>
+                {data.title ? <p className="text-base-content/70">{data.title}</p> : null}
+              </div>
+            </div>
 
             <div className="mt-4 grid gap-2">
               <a className="btn btn-primary" href={`/u/${data.handle}.vcf`}>
