@@ -6,6 +6,15 @@ function clean(v: unknown) {
     .trim();
 }
 
+function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ handle: string }> }
@@ -23,11 +32,23 @@ export async function GET(
     .maybeSingle();
 
   if (error) {
-    return new Response(`Supabase error: ${error.message}`, { status: 500 });
+    return new Response(
+      JSON.stringify({ error: "Database error", message: error.message }),
+      { 
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
 
   if (!data) {
-    return new Response("Not found", { status: 404 });
+    return new Response(
+      JSON.stringify({ error: "Profile not found" }),
+      { 
+        status: 404,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
 
   const fullName = clean(data.display_name) || fallbackName;
@@ -48,7 +69,9 @@ export async function GET(
   if (email) lines.push(`EMAIL;TYPE=INTERNET:${email}`);
 
   const website = clean(data.website);
-  if (website) lines.push(`URL:${website}`);
+  if (website && isValidUrl(website)) {
+    lines.push(`URL:${website}`);
+  }
 
   lines.push("END:VCARD");
 

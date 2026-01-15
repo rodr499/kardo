@@ -19,9 +19,21 @@ export default async function ProfilePage({
 
   if (error) {
     return (
-      <pre className="p-6 whitespace-pre-wrap">
-        Supabase error: {error.message}
-      </pre>
+      <main className="min-h-screen p-6 bg-base-200">
+        <div className="max-w-md mx-auto card bg-base-100 shadow">
+          <div className="card-body">
+            <h1 className="card-title text-error">Error loading profile</h1>
+            <p className="text-sm opacity-70">
+              We encountered an issue loading this profile. Please try again later.
+            </p>
+            <div className="mt-4">
+              <Link className="btn btn-primary" href="/">
+                Go home
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
     );
   }
 
@@ -49,7 +61,12 @@ export default async function ProfilePage({
               ) : null}
 
               {data.website ? (
-                <Link className="btn btn-outline" href={data.website} target="_blank">
+                <Link 
+                  className="btn btn-outline" 
+                  href={data.website.startsWith("http") ? data.website : `https://${data.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Website
                 </Link>
               ) : null}

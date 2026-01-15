@@ -28,7 +28,13 @@ export async function GET(
     .maybeSingle();
 
   if (cardError) {
-    return new NextResponse(`Card lookup error: ${cardError.message}`, { status: 500 });
+    return new NextResponse(
+      JSON.stringify({ error: "Card lookup error", message: cardError.message }),
+      { 
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
 
   if (!card) {
@@ -51,7 +57,13 @@ export async function GET(
     .maybeSingle();
 
   if (profileError) {
-    return new NextResponse(`Profile lookup error: ${profileError.message}`, { status: 500 });
+    return new NextResponse(
+      JSON.stringify({ error: "Profile lookup error", message: profileError.message }),
+      { 
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
 
   if (!profile?.handle) {
