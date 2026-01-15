@@ -12,11 +12,6 @@ export default function HomePage() {
       <div className="container mx-auto px-6 py-12 max-w-4xl">
         {/* Hero Section */}
         <div className="text-center mb-16">
-          <div className="inline-block mb-6">
-            <h1 className="text-6xl md:text-7xl font-bold tracking-tight bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Kardo
-            </h1>
-          </div>
           <p className="text-2xl md:text-3xl font-semibold text-base-content mb-4">
             Your Digital Business Card
           </p>
@@ -65,12 +60,9 @@ export default function HomePage() {
             <p className="text-base-content/70 mb-8 max-w-md">
               Claim your Kardo card and start sharing your contact information the modern way.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center w-full max-w-md">
-              <Link className="btn btn-primary btn-lg flex-1" href="/claim">
+            <div className="flex justify-center w-full max-w-md">
+              <Link className="btn btn-primary btn-lg" href="/claim">
                 Claim Your Card
-              </Link>
-              <Link className="btn btn-outline btn-lg flex-1" href="/claim">
-                Scan Card Code
               </Link>
             </div>
             <p className="text-xs text-base-content/50 mt-6">

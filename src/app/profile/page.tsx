@@ -17,6 +17,13 @@ interface Profile {
   avatar_url: string | null;
   user_type: string | null;
   searchable: boolean | null;
+  linkedin: string | null;
+  twitter: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  tiktok: string | null;
+  youtube: string | null;
+  github: string | null;
 }
 
 interface Card {
@@ -36,8 +43,10 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deletePasswordError, setDeletePasswordError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     handle: "",
@@ -48,6 +57,13 @@ export default function ProfilePage() {
     email: "",
     website: "",
     searchable: false,
+    linkedin: "",
+    twitter: "",
+    instagram: "",
+    facebook: "",
+    tiktok: "",
+    youtube: "",
+    github: "",
   });
 
   // Common country codes
@@ -129,6 +145,13 @@ export default function ProfilePage() {
           email: profileData.email || "",
           website: profileData.website || "",
           searchable: profileData.searchable ?? false,
+          linkedin: profileData.linkedin || "",
+          twitter: profileData.twitter || "",
+          instagram: profileData.instagram || "",
+          facebook: profileData.facebook || "",
+          tiktok: profileData.tiktok || "",
+          youtube: profileData.youtube || "",
+          github: profileData.github || "",
         });
 
         // Set avatar preview if avatar_url exists
@@ -148,6 +171,13 @@ export default function ProfilePage() {
           email: email,
           website: "",
           searchable: false,
+          linkedin: "",
+          twitter: "",
+          instagram: "",
+          facebook: "",
+          tiktok: "",
+          youtube: "",
+          github: "",
         });
       }
 
@@ -218,6 +248,13 @@ export default function ProfilePage() {
           email: formData.email.trim() || null,
           website: formData.website.trim() || null,
           searchable: formData.searchable ?? false,
+          linkedin: formData.linkedin.trim() || null,
+          twitter: formData.twitter.trim() || null,
+          instagram: formData.instagram.trim() || null,
+          facebook: formData.facebook.trim() || null,
+          tiktok: formData.tiktok.trim() || null,
+          youtube: formData.youtube.trim() || null,
+          github: formData.github.trim() || null,
         });
 
       if (updateError) throw updateError;
@@ -235,6 +272,13 @@ export default function ProfilePage() {
         avatar_url: profile?.avatar_url || null,
         user_type: profile?.user_type || null,
         searchable: formData.searchable ?? false,
+        linkedin: formData.linkedin.trim() || null,
+        twitter: formData.twitter.trim() || null,
+        instagram: formData.instagram.trim() || null,
+        facebook: formData.facebook.trim() || null,
+        tiktok: formData.tiktok.trim() || null,
+        youtube: formData.youtube.trim() || null,
+        github: formData.github.trim() || null,
       });
 
       setTimeout(() => setSuccess(false), 3000);
@@ -250,6 +294,59 @@ export default function ProfilePage() {
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      setDeletePasswordError("Please enter your password to confirm");
+      return;
+    }
+
+    setDeleting(true);
+    setDeletePasswordError(null);
+
+    try {
+      const supabase = createSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user?.email) {
+        throw new Error("User not found");
+      }
+
+      // Verify password
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: deletePassword,
+      });
+
+      if (authError) {
+        setDeletePasswordError("Incorrect password");
+        setDeleting(false);
+        return;
+      }
+
+      // Password verified, proceed with deletion
+      const response = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to delete account");
+      }
+
+      // Account deleted successfully, redirect to home
+      router.push("/");
+      router.refresh();
+    } catch (err: any) {
+      setDeletePasswordError(err.message || "Failed to delete account");
+      setDeleting(false);
+    }
   };
 
   const handleShare = async (handleOrCode: string, isCard: boolean = false) => {
@@ -340,19 +437,14 @@ export default function ProfilePage() {
       return;
     }
 
-    setAvatarFile(file);
-
-    // Create preview
+    // Create preview immediately
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatarPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
-  };
 
-  const handleAvatarUpload = async () => {
-    if (!avatarFile) return;
-
+    // Auto-upload immediately
     const supabase = createSupabaseClient();
     const {
       data: { user },
@@ -365,14 +457,14 @@ export default function ProfilePage() {
 
     try {
       // Generate unique filename
-      const fileExt = avatarFile.name.split(".").pop();
+      const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = fileName; // Upload directly to bucket root, not in a subfolder
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, avatarFile, {
+        .upload(filePath, file, {
           cacheControl: "3600",
           upsert: false,
         });
@@ -407,23 +499,18 @@ export default function ProfilePage() {
         ...profile!,
         avatar_url: publicUrl,
       });
-      setAvatarFile(null);
+      setAvatarPreview(null); // Clear preview since we have the real URL now
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
       setError(err.message || "Failed to upload avatar");
+      setAvatarPreview(null); // Clear preview on error
     } finally {
       setUploading(false);
     }
-  };
 
-  const toggleTheme = () => {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute("data-theme");
-    const newTheme = currentTheme === "dark" ? "light" : "dark";
-    html.setAttribute("data-theme", newTheme);
-    // Persist theme preference to localStorage
-    localStorage.setItem("theme", newTheme);
+    // Reset file input
+    e.target.value = "";
   };
 
   // Load theme preference on mount and set page title
@@ -443,15 +530,15 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen p-6 bg-base-200">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <main className="min-h-screen p-3 sm:p-6 bg-base-200">
+      <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
         {/* Header Section with Avatar */}
         <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="avatar">
-                  <div className="rounded-full w-16 h-16 flex items-center justify-center overflow-hidden bg-primary text-primary-content">
+          <div className="card-body p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="avatar self-center sm:self-auto relative">
+                  <div className="rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center overflow-hidden bg-primary text-primary-content">
                     {avatarPreview || profile?.avatar_url ? (
                       <img
                         src={avatarPreview || profile?.avatar_url || ""}
@@ -459,91 +546,48 @@ export default function ProfilePage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-2xl font-bold">
+                      <span className="text-2xl sm:text-3xl font-bold">
                         {getInitials(formData.display_name || profile?.display_name || null)}
                       </span>
                     )}
                   </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="btn btn-sm btn-outline cursor-pointer">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 5a2 2 0 012-2 1 1 0 001-1h6a1 1 0 001 1 2 2 0 012 2v5a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Change Photo
+                  {/* Camera icon overlay on bottom right */}
+                  <label className="absolute bottom-0 right-0 bg-primary text-primary-content rounded-full p-1.5 sm:p-2 cursor-pointer hover:bg-primary-focus transition-colors shadow-lg border-2 border-base-100">
+                    {uploading ? (
+                      <span className="loading loading-spinner loading-xs"></span>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3 w-3 sm:h-4 sm:w-4"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
                     <input
                       type="file"
                       className="hidden"
                       accept="image/*"
                       onChange={handleAvatarChange}
+                      disabled={uploading}
                     />
                   </label>
-                  {avatarFile && (
-                    <button
-                      onClick={handleAvatarUpload}
-                      className="btn btn-sm btn-primary"
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <>
-                          <span className="loading loading-spinner"></span>
-                          Uploading...
-                        </>
-                      ) : (
-                        "Upload"
-                      )}
-                    </button>
-                  )}
                 </div>
-                <div>
-                  <h1 className="text-3xl font-bold">
-                    {formData.display_name || profile?.display_name || "My Profile"}
-                  </h1>
-                  {formData.title && (
-                    <p className="text-base-content/70 mt-1">{formData.title}</p>
-                  )}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                  <div className="text-center sm:text-left">
+                    <h1 className="text-2xl sm:text-3xl font-bold">
+                      {formData.display_name || profile?.display_name || "My Profile"}
+                    </h1>
+                    {formData.title && (
+                      <p className="text-sm sm:text-base text-base-content/70 mt-1">{formData.title}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={toggleTheme}
-                  className="btn btn-sm btn-circle btn-ghost"
-                  title="Toggle theme"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="4"></circle>
-                    <path d="M12 2v2"></path>
-                    <path d="M12 20v2"></path>
-                    <path d="m4.93 4.93 1.41 1.41"></path>
-                    <path d="m17.66 17.66 1.41 1.41"></path>
-                    <path d="M2 12h2"></path>
-                    <path d="M20 12h2"></path>
-                    <path d="m6.34 17.66-1.41 1.41"></path>
-                    <path d="m19.07 4.93-1.41 1.41"></path>
-                  </svg>
-                </button>
-                <button onClick={handleLogout} className="btn btn-sm btn-outline">
-                  Logout
-                </button>
               </div>
             </div>
 
@@ -716,6 +760,141 @@ export default function ProfilePage() {
                 </div>
               </fieldset>
 
+              <div className="divider mt-6">Social Media</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">LinkedIn</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.linkedin}
+                      onChange={(e) =>
+                        setFormData({ ...formData, linkedin: e.target.value })
+                      }
+                      placeholder="linkedin.com/in/username"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Twitter/X</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.twitter}
+                      onChange={(e) =>
+                        setFormData({ ...formData, twitter: e.target.value })
+                      }
+                      placeholder="twitter.com/username or x.com/username"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Instagram</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.instagram}
+                      onChange={(e) =>
+                        setFormData({ ...formData, instagram: e.target.value })
+                      }
+                      placeholder="instagram.com/username"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Facebook</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.facebook}
+                      onChange={(e) =>
+                        setFormData({ ...formData, facebook: e.target.value })
+                      }
+                      placeholder="facebook.com/username"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">TikTok</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.tiktok}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tiktok: e.target.value })
+                      }
+                      placeholder="tiktok.com/@username"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">YouTube</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.youtube}
+                      onChange={(e) =>
+                        setFormData({ ...formData, youtube: e.target.value })
+                      }
+                      placeholder="youtube.com/@username or youtube.com/c/channel"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">GitHub</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.github}
+                      onChange={(e) =>
+                        setFormData({ ...formData, github: e.target.value })
+                      }
+                      placeholder="github.com/username"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
               <div className="divider mt-6">Privacy Settings</div>
 
               <fieldset className="fieldset">
@@ -750,10 +929,10 @@ export default function ProfilePage() {
 
               <div className="divider mt-8"></div>
 
-              <div className="flex flex-col sm:flex-row gap-3 mt-6">
+              <div className="flex flex-col gap-3 mt-6">
                 <button
                   type="submit"
-                  className="btn btn-primary flex-1"
+                  className="btn btn-primary w-full sm:w-auto"
                   disabled={saving}
                 >
                   {saving ? (
@@ -776,12 +955,12 @@ export default function ProfilePage() {
                   )}
                 </button>
                 {profile && (
-                  <>
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <a
                       href={`/u/${encodeURIComponent(profile.handle)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn btn-outline"
+                      className="btn btn-outline flex-1 sm:flex-none"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -800,7 +979,7 @@ export default function ProfilePage() {
                     </a>
                     <button
                       onClick={() => handleShare(profile.handle, false)}
-                      className="btn btn-outline"
+                      className="btn btn-outline flex-1 sm:flex-none"
                       type="button"
                     >
                       <svg
@@ -813,7 +992,7 @@ export default function ProfilePage() {
                       </svg>
                       Share
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </form>
@@ -821,10 +1000,10 @@ export default function ProfilePage() {
         </div>
 
         <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="card-title text-2xl">My Cards</h2>
-              <Link href="/claim" className="btn btn-sm btn-primary">
+          <div className="card-body p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+              <h2 className="card-title text-xl sm:text-2xl">My Cards</h2>
+              <Link href="/claim" className="btn btn-sm btn-primary w-full sm:w-auto">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"
@@ -870,6 +1049,107 @@ export default function ProfilePage() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Delete Account Section */}
+        <div className="card bg-base-100 shadow-xl border-2 border-error">
+          <div className="card-body p-4 sm:p-6">
+            <h2 className="card-title text-error text-xl sm:text-2xl mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              Delete Account
+            </h2>
+
+            <div className="alert alert-error mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="font-semibold">
+                Warning: This action cannot be undone. This will permanently delete your account,
+                release all your card codes, and remove all your data.
+              </span>
+            </div>
+
+            <p className="text-base-content/70 mb-4">
+              If you are sure you want to delete your account, please enter your password below to confirm:
+            </p>
+
+            {deletePasswordError && (
+              <div className="alert alert-error mb-4">
+                <span>{deletePasswordError}</span>
+              </div>
+            )}
+
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text font-semibold">Password</span>
+              </label>
+              <input
+                type="password"
+                className="input input-bordered input-error"
+                value={deletePassword}
+                onChange={(e) => {
+                  setDeletePassword(e.target.value);
+                  setDeletePasswordError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && deletePassword) {
+                    handleDeleteAccount();
+                  }
+                }}
+                placeholder="Enter your password to confirm deletion"
+              />
+            </div>
+
+            <button
+              className="btn btn-error w-full sm:w-auto"
+              onClick={handleDeleteAccount}
+              disabled={!deletePassword || deleting || saving}
+            >
+              {deleting ? (
+                <>
+                  <span className="loading loading-spinner"></span>
+                  Deleting Account...
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Delete My Account
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

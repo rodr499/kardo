@@ -34,6 +34,7 @@ export default function AdminPage() {
     code: string;
     currentValue?: boolean;
   } | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Admin Dashboard - Kardo";
@@ -248,6 +249,31 @@ export default function AdminPage() {
   if (!isAdmin) {
     return null;
   }
+
+  const copyCardUrl = async (code: string) => {
+    const url = `${window.location.origin}/c/${encodeURIComponent(code)}`;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        // Fallback for older browsers
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-999999px";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+      setError("Failed to copy URL to clipboard");
+    }
+  };
 
   // Filter cards
   const filteredCards = cards.filter((card) => {
@@ -482,7 +508,42 @@ export default function AdminPage() {
                     filteredCards.map((card) => (
                       <tr key={card.code}>
                         <td>
-                          <code className="font-mono font-bold">{card.code}</code>
+                          <div className="flex items-center gap-2">
+                            <code className="font-mono font-bold">{card.code}</code>
+                            <button
+                              className="btn btn-xs btn-ghost"
+                              onClick={() => copyCardUrl(card.code)}
+                              title="Copy /c/[code] URL to clipboard"
+                            >
+                              {copiedCode === card.code ? (
+                                <>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  Copied!
+                                </>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
                         </td>
                         <td>
                           <span

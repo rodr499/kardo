@@ -39,6 +39,42 @@ BEGIN
                  WHERE table_name = 'profiles' AND column_name = 'searchable') THEN
     ALTER TABLE profiles ADD COLUMN searchable BOOLEAN DEFAULT FALSE;
   END IF;
+  
+  -- Add social media columns if they don't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'linkedin') THEN
+    ALTER TABLE profiles ADD COLUMN linkedin TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'twitter') THEN
+    ALTER TABLE profiles ADD COLUMN twitter TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'instagram') THEN
+    ALTER TABLE profiles ADD COLUMN instagram TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'facebook') THEN
+    ALTER TABLE profiles ADD COLUMN facebook TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'tiktok') THEN
+    ALTER TABLE profiles ADD COLUMN tiktok TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'youtube') THEN
+    ALTER TABLE profiles ADD COLUMN youtube TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'github') THEN
+    ALTER TABLE profiles ADD COLUMN github TEXT;
+  END IF;
 END $$;
 
 -- 2. Ensure cards table has all required columns (add only if missing)
