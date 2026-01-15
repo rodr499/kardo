@@ -38,3 +38,17 @@ export async function getCurrentProfile() {
 
   return profile;
 }
+
+export async function isSuperAdmin() {
+  const profile = await getCurrentProfile();
+  return profile?.user_type === "super_admin";
+}
+
+export async function requireSuperAdmin() {
+  const user = await requireAuth();
+  const isAdmin = await isSuperAdmin();
+  if (!isAdmin) {
+    redirect("/");
+  }
+  return user;
+}

@@ -27,6 +27,12 @@ BEGIN
                  WHERE table_name = 'profiles' AND column_name = 'avatar_url') THEN
     ALTER TABLE profiles ADD COLUMN avatar_url TEXT;
   END IF;
+  
+  -- Add user_type if it doesn't exist (super_admin or cardholder)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'user_type') THEN
+    ALTER TABLE profiles ADD COLUMN user_type TEXT DEFAULT 'cardholder' CHECK (user_type IN ('super_admin', 'cardholder'));
+  END IF;
 END $$;
 
 -- 2. Ensure cards table has all required columns (add only if missing)
@@ -37,13 +43,21 @@ BEGIN
                  WHERE table_name = 'cards' AND column_name = 'claimed_at') THEN
     ALTER TABLE cards ADD COLUMN claimed_at TIMESTAMPTZ;
   END IF;
+  
+  -- Add nfc_tag_assigned if it doesn't exist (tracks if code is assigned to physical NFC tag)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'cards' AND column_name = 'nfc_tag_assigned') THEN
+    ALTER TABLE cards ADD COLUMN nfc_tag_assigned BOOLEAN DEFAULT FALSE;
+  END IF;
 END $$;
 
 -- 3. Create indexes for better performance (safe - won't recreate if exists)
 CREATE INDEX IF NOT EXISTS idx_profiles_handle ON profiles(handle);
+CREATE INDEX IF NOT EXISTS idx_profiles_user_type ON profiles(user_type);
 CREATE INDEX IF NOT EXISTS idx_cards_code ON cards(code);
 CREATE INDEX IF NOT EXISTS idx_cards_profile_id ON cards(profile_id);
 CREATE INDEX IF NOT EXISTS idx_cards_status ON cards(status);
+CREATE INDEX IF NOT EXISTS idx_cards_nfc_tag_assigned ON cards(nfc_tag_assigned);
 
 -- 4. Enable Row Level Security (RLS) - safe to run multiple times
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -68,11 +82,27 @@ CREATE POLICY "Users can insert their own profile"
 -- Allow trigger function to insert profiles (SECURITY DEFINER bypasses RLS, but this is a backup)
 -- Note: SECURITY DEFINER functions should bypass RLS automatically
 
--- Users can update their own profile
+-- Users can update their own profile (but not user_type - only super_admin can change that)
 CREATE POLICY "Users can update their own profile"
   ON profiles FOR UPDATE
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
+
+-- Super admins can update any profile
+CREATE POLICY "Super admins can update any profile"
+  ON profiles FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND user_type = 'super_admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND user_type = 'super_admin'
+    )
+  );
 
 -- Users can delete their own profile
 CREATE POLICY "Users can delete their own profile"
@@ -93,6 +123,22 @@ CREATE POLICY "Users can claim cards"
   ON cards FOR UPDATE
   USING (auth.uid() IS NOT NULL)
   WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Super admins can update any card (for NFC tag assignment)
+CREATE POLICY "Super admins can update any card"
+  ON cards FOR UPDATE
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND user_type = 'super_admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND user_type = 'super_admin'
+    )
+  );
 
 -- 7. Function to automatically create profile on user signup
 -- This will only insert if profile doesn't already exist (safe for existing users)

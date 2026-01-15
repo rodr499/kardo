@@ -6,6 +6,7 @@ import { createSupabaseClient } from "@/lib/supabase/client";
 
 export default function Nav() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,6 +16,20 @@ export default function Nav() {
         data: { user },
       } = await supabase.auth.getUser();
       setIsAuthenticated(!!user);
+      
+      if (user) {
+        // Check if user is super_admin
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("user_type")
+          .eq("id", user.id)
+          .maybeSingle();
+        
+        setIsAdmin(profile?.user_type === "super_admin");
+      } else {
+        setIsAdmin(false);
+      }
+      
       setLoading(false);
     };
 
@@ -46,6 +61,11 @@ export default function Nav() {
             <>
               {isAuthenticated ? (
                 <>
+                  {isAdmin && (
+                    <Link href="/admin" className="btn btn-ghost">
+                      Admin
+                    </Link>
+                  )}
                   <Link href="/profile" className="btn btn-ghost">
                     My Profile
                   </Link>

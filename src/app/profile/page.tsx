@@ -15,6 +15,7 @@ interface Profile {
   email: string | null;
   website: string | null;
   avatar_url: string | null;
+  user_type: string | null;
 }
 
 interface Card {
@@ -126,7 +127,7 @@ export default function ProfilePage() {
           email: profileData.email || "",
           website: profileData.website || "",
         });
-        
+
         // Set avatar preview if avatar_url exists
         if (profileData.avatar_url) {
           setAvatarPreview(profileData.avatar_url);
@@ -227,6 +228,7 @@ export default function ProfilePage() {
         email: formData.email.trim() || null,
         website: formData.website.trim() || null,
         avatar_url: profile?.avatar_url || null,
+        user_type: profile?.user_type || null,
       });
 
       setTimeout(() => setSuccess(false), 3000);
@@ -333,7 +335,7 @@ export default function ProfilePage() {
     }
 
     setAvatarFile(file);
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
