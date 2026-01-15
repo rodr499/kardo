@@ -2,14 +2,28 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default async function ProfilePage({ params }: { params: { handle: string } }) {
+export default async function ProfilePage({
+  params,
+}: {
+  params: Promise<{ handle: string }>;
+}) {
+  const { handle } = await params;
+
   const supabase = createSupabaseServerClient();
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("handle,display_name,title,phone,email,website")
-    .eq("handle", params.handle)
+    .eq("handle", handle)
     .maybeSingle();
+
+  if (error) {
+    return (
+      <pre className="p-6 whitespace-pre-wrap">
+        Supabase error: {error.message}
+      </pre>
+    );
+  }
 
   if (!data) return notFound();
 
