@@ -15,9 +15,17 @@ interface Profile {
   website: string | null;
 }
 
+interface Card {
+  code: string;
+  status: string;
+  created_at: string;
+  claimed_at: string | null;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +87,19 @@ export default function ProfilePage() {
           email: email,
           website: "",
         });
+      }
+
+      // Load user's cards
+      const { data: cardsData, error: cardsError } = await supabase
+        .from("cards")
+        .select("code,status,created_at,claimed_at")
+        .eq("profile_id", user.id)
+        .order("claimed_at", { ascending: false, nullsFirst: false });
+
+      if (cardsError) {
+        console.error("Error loading cards:", cardsError);
+      } else {
+        setCards(cardsData || []);
       }
 
       setLoading(false);
@@ -193,7 +214,7 @@ export default function ProfilePage() {
                   <span className="label-text">Handle (URL)</span>
                 </label>
                 <div className="input-group">
-                  <span>kardo.com/u/</span>
+                  <span>getkardo.app/u/</span>
                   <input
                     type="text"
                     className="input input-bordered flex-1 font-mono"
@@ -326,13 +347,62 @@ export default function ProfilePage() {
 
         <div className="card bg-base-100 shadow">
           <div className="card-body">
-            <h2 className="card-title">My Cards</h2>
-            <p className="text-sm opacity-70">
-              Cards you've claimed will appear here.{" "}
-              <Link href="/claim" className="link">
-                Claim a card →
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="card-title">My Cards</h2>
+              <Link href="/claim" className="btn btn-sm btn-primary">
+                Claim a Card
               </Link>
-            </p>
+            </div>
+            
+            {cards.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-sm opacity-70 mb-4">
+                  You haven't claimed any cards yet.
+                </p>
+                <Link href="/claim" className="btn btn-primary btn-sm">
+                  Claim Your First Card
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {cards.map((card) => (
+                  <div key={card.code} className="border border-base-300 rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="font-mono font-bold text-lg mb-1">
+                          {card.code}
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-base-content/70">
+                          <span className={`badge ${card.status === "active" ? "badge-success" : card.status === "disabled" ? "badge-error" : "badge-warning"}`}>
+                            {card.status}
+                          </span>
+                          {card.claimed_at && (
+                            <span>Claimed {new Date(card.claimed_at).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/c/${card.code}`}
+                          className="btn btn-xs btn-outline"
+                          target="_blank"
+                        >
+                          View
+                        </Link>
+                        <a
+                          href={`/c/${card.code}`}
+                          className="btn btn-xs btn-outline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Share Link
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
