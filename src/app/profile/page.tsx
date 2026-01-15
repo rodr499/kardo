@@ -30,15 +30,47 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     handle: "",
     display_name: "",
     title: "",
+    countryCode: "+1",
     phone: "",
     email: "",
     website: "",
   });
+
+  // Common country codes
+  const countryCodes = [
+    { code: "+1", country: "US/CA" },
+    { code: "+44", country: "UK" },
+    { code: "+33", country: "FR" },
+    { code: "+49", country: "DE" },
+    { code: "+39", country: "IT" },
+    { code: "+34", country: "ES" },
+    { code: "+31", country: "NL" },
+    { code: "+32", country: "BE" },
+    { code: "+41", country: "CH" },
+    { code: "+43", country: "AT" },
+    { code: "+45", country: "DK" },
+    { code: "+46", country: "SE" },
+    { code: "+47", country: "NO" },
+    { code: "+351", country: "PT" },
+    { code: "+353", country: "IE" },
+    { code: "+358", country: "FI" },
+    { code: "+61", country: "AU" },
+    { code: "+64", country: "NZ" },
+    { code: "+81", country: "JP" },
+    { code: "+82", country: "KR" },
+    { code: "+86", country: "CN" },
+    { code: "+91", country: "IN" },
+    { code: "+55", country: "BR" },
+    { code: "+52", country: "MX" },
+    { code: "+54", country: "AR" },
+    { code: "+27", country: "ZA" },
+  ];
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -66,12 +98,26 @@ export default function ProfilePage() {
       }
 
       if (profileData) {
+        // Parse country code from phone if it exists
+        let countryCode = "+1";
+        let phoneNumber = profileData.phone || "";
+
+        if (phoneNumber && phoneNumber.startsWith("+")) {
+          // Try to extract country code (common formats: +1, +44, +123)
+          const match = phoneNumber.match(/^(\+\d{1,3})/);
+          if (match) {
+            countryCode = match[1];
+            phoneNumber = phoneNumber.substring(match[1].length).trim();
+          }
+        }
+
         setProfile(profileData);
         setFormData({
           handle: profileData.handle || "",
           display_name: profileData.display_name || "",
           title: profileData.title || "",
-          phone: profileData.phone || "",
+          countryCode: countryCode,
+          phone: phoneNumber,
           email: profileData.email || "",
           website: profileData.website || "",
         });
@@ -83,6 +129,7 @@ export default function ProfilePage() {
           handle: defaultHandle,
           display_name: defaultHandle,
           title: "",
+          countryCode: "+1",
           phone: "",
           email: email,
           website: "",
@@ -141,6 +188,11 @@ export default function ProfilePage() {
         }
       }
 
+      // Combine country code and phone number
+      const fullPhone = formData.phone.trim()
+        ? `${formData.countryCode}${formData.phone.trim()}`
+        : null;
+
       const { error: updateError } = await supabase
         .from("profiles")
         .upsert({
@@ -148,7 +200,7 @@ export default function ProfilePage() {
           handle: formData.handle.trim(),
           display_name: formData.display_name.trim() || null,
           title: formData.title.trim() || null,
-          phone: formData.phone.trim() || null,
+          phone: fullPhone,
           email: formData.email.trim() || null,
           website: formData.website.trim() || null,
         });
@@ -176,6 +228,85 @@ export default function ProfilePage() {
     router.refresh();
   };
 
+  const handleShare = async (handleOrCode: string, isCard: boolean = false) => {
+    const url = isCard
+      ? `${window.location.origin}/c/${encodeURIComponent(handleOrCode)}`
+      : `${window.location.origin}/u/${encodeURIComponent(handleOrCode)}`;
+
+    // Try Web Share API first (if available)
+    if (navigator.share && navigator.canShare) {
+      try {
+        await navigator.share({
+          title: isCard ? "My Kardo Card" : "My Kardo Profile",
+          text: "Check out my digital business card",
+          url: url,
+        });
+        return; // Successfully shared, exit
+      } catch (err: any) {
+        // User cancelled (AbortError) - don't show error
+        if (err.name === "AbortError") {
+          return;
+        }
+        // Other errors fall through to clipboard fallback
+      }
+    }
+
+    // Fallback to clipboard
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShareMessage("Link copied to clipboard!");
+        setTimeout(() => setShareMessage(null), 3000);
+      } else {
+        // Fallback for older browsers - use textarea method
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-999999px";
+        textarea.style.top = "-999999px";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        
+        try {
+          const successful = document.execCommand("copy");
+          document.body.removeChild(textarea);
+          
+          if (successful) {
+            setShareMessage("Link copied to clipboard!");
+            setTimeout(() => setShareMessage(null), 3000);
+          } else {
+            throw new Error("Copy command failed");
+          }
+        } catch (err) {
+          document.body.removeChild(textarea);
+          throw err;
+        }
+      }
+    } catch (err) {
+      // Show error and also show the URL so user can manually copy
+      setError(`Failed to copy link. Please copy manually: ${url}`);
+      setTimeout(() => setError(null), 5000);
+    }
+  };
+
+  const getInitials = (name: string | null) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const toggleTheme = () => {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute("data-theme");
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    html.setAttribute("data-theme", newTheme);
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen p-6 bg-base-200 flex items-center justify-center">
@@ -186,14 +317,60 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen p-6 bg-base-200">
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Header Section with Avatar */}
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-3xl font-bold">My Profile</h1>
-              <button onClick={handleLogout} className="btn btn-sm btn-outline">
-                Logout
-              </button>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="avatar placeholder">
+                  <div className="bg-primary text-primary-content rounded-full w-16 h-16 flex items-center justify-center">
+                    <span className="text-2xl font-bold">
+                      {getInitials(formData.display_name || profile?.display_name || null)}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold">
+                    {formData.display_name || profile?.display_name || "My Profile"}
+                  </h1>
+                  {formData.title && (
+                    <p className="text-base-content/70 mt-1">{formData.title}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={toggleTheme}
+                  className="btn btn-sm btn-circle btn-ghost"
+                  title="Toggle theme"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2"></path>
+                    <path d="M12 20v2"></path>
+                    <path d="m4.93 4.93 1.41 1.41"></path>
+                    <path d="m17.66 17.66 1.41 1.41"></path>
+                    <path d="M2 12h2"></path>
+                    <path d="M20 12h2"></path>
+                    <path d="m6.34 17.66-1.41 1.41"></path>
+                    <path d="m19.07 4.93-1.41 1.41"></path>
+                  </svg>
+                </button>
+                <button onClick={handleLogout} className="btn btn-sm btn-outline">
+                  Logout
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -203,120 +380,171 @@ export default function ProfilePage() {
             )}
 
             {success && (
-              <div className="alert alert-success">
+              <div className="alert alert-success mb-4">
                 <span>Profile saved successfully!</span>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Handle (URL)</span>
-                </label>
-                <div className="input-group">
-                  <span>getkardo.app/u/</span>
-                  <input
-                    type="text"
-                    className="input input-bordered flex-1 font-mono"
-                    value={formData.handle}
-                    onChange={(e) =>
-                      setFormData({ ...formData, handle: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })
-                    }
-                    required
-                    pattern="[a-z0-9-]+"
-                    title="Only lowercase letters, numbers, and hyphens"
-                  />
+            {shareMessage && (
+              <div className="alert alert-info mb-4">
+                <span>{shareMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="divider">Profile Information</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Handle (URL)</span>
+                    </label>
+                    <div className="flex-1">
+                      <div className="input-group">
+                        <span>getkardo.app/u/</span>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1 font-mono"
+                          value={formData.handle}
+                          onChange={(e) =>
+                            setFormData({ ...formData, handle: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })
+                          }
+                          required
+                          pattern="[a-z0-9-]+"
+                          title="Only lowercase letters, numbers, and hyphens"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="label">
-                  <span className="label-text-alt">
-                    Your profile will be at:{" "}
-                    <Link
-                      href={`/u/${formData.handle}`}
-                      target="_blank"
-                      className="link"
-                    >
-                      /u/{formData.handle}
-                    </Link>
-                  </span>
+                <p className="label">
+                  Your profile will be at:{" "}
+                  <Link
+                    href={`/u/${formData.handle}`}
+                    target="_blank"
+                    className="link"
+                  >
+                    /u/{formData.handle}
+                  </Link>
+                </p>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Display Name</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.display_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, display_name: e.target.value })
+                      }
+                      placeholder="John Doe"
+                    />
+                  </div>
                 </div>
-              </div>
+              </fieldset>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Display Name</span>
-                </label>
-                <input
-                  type="text"
-                  className="input input-bordered"
-                  value={formData.display_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, display_name: e.target.value })
-                  }
-                  placeholder="John Doe"
-                />
-              </div>
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Title</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      placeholder="Software Engineer"
+                    />
+                  </div>
+                </div>
+              </fieldset>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Title</span>
-                </label>
-                <input
-                  type="text"
-                  className="input input-bordered"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Software Engineer"
-                />
-              </div>
+              <div className="divider mt-6">Contact Information</div>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Phone</span>
-                </label>
-                <input
-                  type="tel"
-                  className="input input-bordered"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  placeholder="+1 (555) 123-4567"
-                />
-              </div>
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Phone</span>
+                    </label>
+                    <div className="flex flex-1 gap-2">
+                      <select
+                        className="select select-bordered w-32"
+                        value={formData.countryCode}
+                        onChange={(e) =>
+                          setFormData({ ...formData, countryCode: e.target.value })
+                        }
+                      >
+                        {countryCodes.map((cc) => (
+                          <option key={cc.code} value={cc.code}>
+                            {cc.code} {cc.country}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="tel"
+                        className="input input-bordered flex-1"
+                        value={formData.phone}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
+                        placeholder="(555) 123-4567"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </fieldset>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Email</span>
-                </label>
-                <input
-                  type="email"
-                  className="input input-bordered"
-                  value={formData.email}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
-                  placeholder="you@example.com"
-                />
-              </div>
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Email</span>
+                    </label>
+                    <input
+                      type="email"
+                      className="input input-bordered flex-1"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                </div>
+              </fieldset>
 
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Website</span>
-                </label>
-                <input
-                  type="url"
-                  className="input input-bordered"
-                  value={formData.website}
-                  onChange={(e) =>
-                    setFormData({ ...formData, website: e.target.value })
-                  }
-                  placeholder="https://example.com"
-                />
-              </div>
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Website</span>
+                    </label>
+                    <input
+                      type="url"
+                      className="input input-bordered flex-1"
+                      value={formData.website}
+                      onChange={(e) =>
+                        setFormData({ ...formData, website: e.target.value })
+                      }
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                </div>
+              </fieldset>
 
-              <div className="flex gap-4 mt-6">
+              <div className="divider mt-8"></div>
+
+              <div className="flex flex-col sm:flex-row gap-3 mt-6">
                 <button
                   type="submit"
                   className="btn btn-primary flex-1"
@@ -328,76 +556,109 @@ export default function ProfilePage() {
                       Saving...
                     </>
                   ) : (
-                    "Save Profile"
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
+                      </svg>
+                      Save Profile
+                    </>
                   )}
                 </button>
                 {profile && (
-                  <Link
-                    href={`/u/${profile.handle}`}
-                    target="_blank"
-                    className="btn btn-outline"
-                  >
-                    View Profile
-                  </Link>
+                  <>
+                    <a
+                      href={`/u/${encodeURIComponent(profile.handle)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-outline"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                        <path
+                          fillRule="evenodd"
+                          d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      View Profile
+                    </a>
+                    <button
+                      onClick={() => handleShare(profile.handle, false)}
+                      className="btn btn-outline"
+                      type="button"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                      </svg>
+                      Share
+                    </button>
+                  </>
                 )}
               </div>
             </form>
           </div>
         </div>
 
-        <div className="card bg-base-100 shadow">
+        <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="card-title">My Cards</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="card-title text-2xl">My Cards</h2>
               <Link href="/claim" className="btn btn-sm btn-primary">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 Claim a Card
               </Link>
             </div>
-            
+
             {cards.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-sm opacity-70 mb-4">
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">🎴</div>
+                <p className="text-base opacity-70 mb-6">
                   You haven't claimed any cards yet.
                 </p>
-                <Link href="/claim" className="btn btn-primary btn-sm">
+                <Link href="/claim" className="btn btn-primary">
                   Claim Your First Card
                 </Link>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {cards.map((card) => (
-                  <div key={card.code} className="border border-base-300 rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="font-mono font-bold text-lg mb-1">
-                          {card.code}
-                        </div>
-                        <div className="flex items-center gap-3 text-sm text-base-content/70">
-                          <span className={`badge ${card.status === "active" ? "badge-success" : card.status === "disabled" ? "badge-error" : "badge-warning"}`}>
-                            {card.status}
-                          </span>
-                          {card.claimed_at && (
-                            <span>Claimed {new Date(card.claimed_at).toLocaleDateString()}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/c/${card.code}`}
-                          className="btn btn-xs btn-outline"
-                          target="_blank"
-                        >
-                          View
-                        </Link>
-                        <a
-                          href={`/c/${card.code}`}
-                          className="btn btn-xs btn-outline"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Share Link
-                        </a>
-                      </div>
+                  <div key={card.code} className="border border-base-300 rounded-lg p-5 hover:shadow-md transition-shadow">
+                    <div className="font-mono font-bold text-lg mb-1">
+                      {card.code}
+                    </div>
+                    <div className="flex items-center gap-3 text-sm text-base-content/70">
+                      <span className={`badge ${card.status === "active" ? "badge-success" : card.status === "disabled" ? "badge-error" : "badge-warning"}`}>
+                        {card.status}
+                      </span>
+                      {card.claimed_at && (
+                        <span>Claimed {new Date(card.claimed_at).toLocaleDateString()}</span>
+                      )}
                     </div>
                   </div>
                 ))}
