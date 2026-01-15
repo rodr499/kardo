@@ -51,12 +51,12 @@ export default function Nav() {
   return (
     <nav className="navbar bg-base-100 shadow-sm">
       <div className="container mx-auto px-6">
-        <div className="flex-1">
+        <div className="navbar-start">
           <Link href="/" className="btn btn-ghost text-xl font-bold">
             Kardo
           </Link>
         </div>
-        <div className="flex-none gap-2">
+        <div className="navbar-end gap-2">
           {!loading && (
             <>
               {isAuthenticated ? (
