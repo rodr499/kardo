@@ -6,6 +6,9 @@ import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
 function LoginForm() {
+  useEffect(() => {
+    document.title = "Sign In - Kardo";
+  }, []);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");

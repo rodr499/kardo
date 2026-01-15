@@ -16,6 +16,7 @@ interface Profile {
   website: string | null;
   avatar_url: string | null;
   user_type: string | null;
+  searchable: boolean | null;
 }
 
 interface Card {
@@ -46,6 +47,7 @@ export default function ProfilePage() {
     phone: "",
     email: "",
     website: "",
+    searchable: false,
   });
 
   // Common country codes
@@ -126,6 +128,7 @@ export default function ProfilePage() {
           phone: phoneNumber,
           email: profileData.email || "",
           website: profileData.website || "",
+          searchable: profileData.searchable ?? false,
         });
 
         // Set avatar preview if avatar_url exists
@@ -144,6 +147,7 @@ export default function ProfilePage() {
           phone: "",
           email: email,
           website: "",
+          searchable: false,
         });
       }
 
@@ -213,6 +217,7 @@ export default function ProfilePage() {
           country_code: formData.countryCode || "+1",
           email: formData.email.trim() || null,
           website: formData.website.trim() || null,
+          searchable: formData.searchable ?? false,
         });
 
       if (updateError) throw updateError;
@@ -229,6 +234,7 @@ export default function ProfilePage() {
         website: formData.website.trim() || null,
         avatar_url: profile?.avatar_url || null,
         user_type: profile?.user_type || null,
+        searchable: formData.searchable ?? false,
       });
 
       setTimeout(() => setSuccess(false), 3000);
@@ -420,11 +426,12 @@ export default function ProfilePage() {
     localStorage.setItem("theme", newTheme);
   };
 
-  // Load theme preference on mount
+  // Load theme preference on mount and set page title
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") || "light";
     const html = document.documentElement;
     html.setAttribute("data-theme", savedTheme);
+    document.title = "My Profile - Kardo";
   }, []);
 
   if (loading) {
@@ -707,6 +714,38 @@ export default function ProfilePage() {
                     />
                   </div>
                 </div>
+              </fieldset>
+
+              <div className="divider mt-6">Privacy Settings</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Search Engine Visibility</span>
+                    </label>
+                    <div className="flex-1 flex items-center gap-4">
+                      <label className="label cursor-pointer gap-4">
+                        <span className="label-text">
+                          {formData.searchable
+                            ? "Your profile can be found in search engines"
+                            : "Your profile is hidden from search engines"}
+                        </span>
+                        <input
+                          type="checkbox"
+                          className="toggle toggle-primary"
+                          checked={formData.searchable}
+                          onChange={(e) =>
+                            setFormData({ ...formData, searchable: e.target.checked })
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <p className="label text-sm text-base-content/70 mt-2">
+                  When disabled, search engines will not index your profile page.
+                </p>
               </fieldset>
 
               <div className="divider mt-8"></div>

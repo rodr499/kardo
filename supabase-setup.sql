@@ -33,6 +33,12 @@ BEGIN
                  WHERE table_name = 'profiles' AND column_name = 'user_type') THEN
     ALTER TABLE profiles ADD COLUMN user_type TEXT DEFAULT 'cardholder' CHECK (user_type IN ('super_admin', 'cardholder'));
   END IF;
+  
+  -- Add searchable if it doesn't exist (controls search engine indexing)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'searchable') THEN
+    ALTER TABLE profiles ADD COLUMN searchable BOOLEAN DEFAULT FALSE;
+  END IF;
 END $$;
 
 -- 2. Ensure cards table has all required columns (add only if missing)

@@ -16,6 +16,8 @@ function ClaimForm() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
+    document.title = "Claim Your Card - Kardo";
+    
     // Set code from URL if present
     const codeParam = searchParams.get("code");
     if (codeParam) {

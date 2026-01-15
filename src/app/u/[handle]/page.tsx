@@ -1,6 +1,44 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Metadata } from "next";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ handle: string }>;
+}): Promise<Metadata> {
+  const { handle: handleParam } = await params;
+  const handle = decodeURIComponent(handleParam).toLowerCase().trim();
+  
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("display_name,title,searchable")
+    .ilike("handle", handle)
+    .maybeSingle();
+
+  const title = data?.display_name 
+    ? `${data.display_name}${data.title ? ` - ${data.title}` : ""} - Kardo`
+    : `${handle} - Kardo`;
+
+  const metadata: Metadata = {
+    title: title,
+    description: data?.display_name 
+      ? `View ${data.display_name}'s digital business card on Kardo`
+      : "View digital business card on Kardo",
+  };
+
+  // If profile is not searchable, add noindex meta tag
+  if (data && data.searchable === false) {
+    metadata.robots = {
+      index: false,
+      follow: false,
+    };
+  }
+
+  return metadata;
+}
 
 export default async function ProfilePage({
   params,
@@ -15,7 +53,7 @@ export default async function ProfilePage({
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("handle,display_name,title,phone,country_code,email,website,avatar_url")
+    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,searchable")
     .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 

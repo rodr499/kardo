@@ -1,4 +1,10 @@
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Kardo - Your Digital Business Card",
+  description: "Share your contact information instantly. No apps, no downloads—just scan and connect.",
+};
 
 export default function HomePage() {
   return (

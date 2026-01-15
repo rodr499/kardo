@@ -36,6 +36,8 @@ export default function AdminPage() {
   } | null>(null);
 
   useEffect(() => {
+    document.title = "Admin Dashboard - Kardo";
+    
     const loadData = async () => {
       const supabase = createSupabaseClient();
       const {
