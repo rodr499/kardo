@@ -19,16 +19,18 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ handle: string }> }
 ) {
-  const { handle } = await params;
+  const { handle: handleParam } = await params;
+  // Decode URL-encoded handle and normalize (lowercase for case-insensitive lookup)
+  const handle = decodeURIComponent(handleParam).toLowerCase().trim();
 
   const fallbackName = handle;
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase
     .from("profiles")
     .select("display_name,title,phone,email,website")
-    .eq("handle", handle)
+    .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 
   if (error) {

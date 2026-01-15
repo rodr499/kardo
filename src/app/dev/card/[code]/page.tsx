@@ -8,7 +8,7 @@ export default async function DevCardPage({
   const { code: raw } = await params;
   const code = decodeURIComponent(raw).toUpperCase();
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const { data: card, error } = await supabase
     .from("cards")
     .select("code,status,profile_id,created_at,claimed_at")

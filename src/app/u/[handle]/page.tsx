@@ -7,15 +7,22 @@ export default async function ProfilePage({
 }: {
   params: Promise<{ handle: string }>;
 }) {
-  const { handle } = await params;
+  const { handle: handleParam } = await params;
+  // Decode URL-encoded handle and normalize (lowercase for case-insensitive lookup)
+  const handle = decodeURIComponent(handleParam).toLowerCase().trim();
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase
     .from("profiles")
     .select("handle,display_name,title,phone,email,website")
-    .eq("handle", handle)
+    .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
+
+  // Debug logging (remove in production)
+  if (process.env.NODE_ENV === "development") {
+    console.log("[ProfilePage] Query:", { handle, data: !!data, error: error?.message });
+  }
 
   if (error) {
     return (

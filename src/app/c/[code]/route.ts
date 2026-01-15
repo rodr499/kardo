@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 // Crockford-ish Base32 (no I, O, 0, 1) — matches our generator alphabet
 const CODE_RE = /^[A-HJ-NP-Z2-9]{6,16}$/i;
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { code: raw } = await params;
-  const origin = new URL(req.url).origin;
+  
+  // Get origin from request headers to properly handle IP addresses
+  const host = req.headers.get("host") || req.nextUrl.host;
+  const protocol = req.headers.get("x-forwarded-proto") || req.nextUrl.protocol || "http";
+  const origin = `${protocol}://${host}`;
 
   const code = decodeURIComponent(raw).toUpperCase();
 
@@ -18,7 +23,7 @@ export async function GET(
     return NextResponse.redirect(new URL(`/unknown-card`, origin));
   }
 
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
 
   // 1) Lookup card
   const { data: card, error: cardError } = await supabase
