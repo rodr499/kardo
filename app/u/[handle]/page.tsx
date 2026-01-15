@@ -1,0 +1,52 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export default async function ProfilePage({ params }: { params: { handle: string } }) {
+  const supabase = createSupabaseServerClient();
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("handle,display_name,title,phone,email,website")
+    .eq("handle", params.handle)
+    .maybeSingle();
+
+  if (!data) return notFound();
+
+  return (
+    <main className="min-h-screen p-5 bg-base-200">
+      <div className="max-w-md mx-auto space-y-4">
+        <div className="card bg-base-100 shadow">
+          <div className="card-body">
+            <h1 className="text-2xl font-bold">{data.display_name}</h1>
+            {data.title ? <p className="text-base-content/70">{data.title}</p> : null}
+
+            <div className="mt-4 grid gap-2">
+              <a className="btn btn-primary" href={`/u/${data.handle}.vcf`}>
+                Add to Contacts
+              </a>
+
+              {data.phone ? (
+                <a className="btn btn-outline" href={`tel:${data.phone}`}>Call</a>
+              ) : null}
+
+              {data.email ? (
+                <a className="btn btn-outline" href={`mailto:${data.email}`}>Email</a>
+              ) : null}
+
+              {data.website ? (
+                <Link className="btn btn-outline" href={data.website} target="_blank">
+                  Website
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center text-sm text-base-content/60">
+          Powered by <span className="font-semibold">Kardo</span>
+        </div>
+      </div>
+    </main>
+  );
+}
