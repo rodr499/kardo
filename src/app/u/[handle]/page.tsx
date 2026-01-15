@@ -15,7 +15,7 @@ export default async function ProfilePage({
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("handle,display_name,title,phone,country_code,email,website")
+    .select("handle,display_name,title,phone,country_code,email,website,avatar_url")
     .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 
@@ -63,11 +63,19 @@ export default async function ProfilePage({
         <div className="card bg-base-100 shadow">
           <div className="card-body">
             <div className="flex items-center gap-4 mb-4">
-              <div className="avatar placeholder">
-                <div className="bg-primary text-primary-content rounded-full w-16 h-16 flex items-center justify-center">
-                  <span className="text-2xl font-bold">
-                    {getInitials(data.display_name)}
-                  </span>
+              <div className="avatar">
+                <div className="rounded-full w-16 h-16 flex items-center justify-center overflow-hidden bg-primary text-primary-content">
+                  {data.avatar_url ? (
+                    <img
+                      src={data.avatar_url}
+                      alt={data.display_name || "Avatar"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl font-bold">
+                      {getInitials(data.display_name)}
+                    </span>
+                  )}
                 </div>
               </div>
               <div>

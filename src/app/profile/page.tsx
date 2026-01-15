@@ -14,6 +14,7 @@ interface Profile {
   country_code: string | null;
   email: string | null;
   website: string | null;
+  avatar_url: string | null;
 }
 
 interface Card {
@@ -29,9 +30,12 @@ export default function ProfilePage() {
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     handle: "",
@@ -122,6 +126,11 @@ export default function ProfilePage() {
           email: profileData.email || "",
           website: profileData.website || "",
         });
+        
+        // Set avatar preview if avatar_url exists
+        if (profileData.avatar_url) {
+          setAvatarPreview(profileData.avatar_url);
+        }
       } else {
         // Create profile if it doesn't exist
         const email = user.email || "";
@@ -217,6 +226,7 @@ export default function ProfilePage() {
         country_code: formData.countryCode || "+1",
         email: formData.email.trim() || null,
         website: formData.website.trim() || null,
+        avatar_url: profile?.avatar_url || null,
       });
 
       setTimeout(() => setSuccess(false), 3000);
@@ -306,6 +316,99 @@ export default function ProfilePage() {
       .slice(0, 2);
   };
 
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size must be less than 5MB");
+      return;
+    }
+
+    setAvatarFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) return;
+
+    const supabase = createSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      // Generate unique filename
+      const fileExt = avatarFile.name.split(".").pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = fileName; // Upload directly to bucket root, not in a subfolder
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, avatarFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+      // Delete old avatar if it exists
+      if (profile?.avatar_url) {
+        // Extract filename from URL (handle both full URLs and relative paths)
+        const urlParts = profile.avatar_url.split("/");
+        const oldFileName = urlParts[urlParts.length - 1];
+        if (oldFileName) {
+          await supabase.storage.from("avatars").remove([oldFileName]);
+        }
+      }
+
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setProfile({
+        ...profile!,
+        avatar_url: publicUrl,
+      });
+      setAvatarFile(null);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload avatar");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const toggleTheme = () => {
     const html = document.documentElement;
     const currentTheme = html.getAttribute("data-theme");
@@ -338,12 +441,59 @@ export default function ProfilePage() {
           <div className="card-body">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className="avatar placeholder">
-                  <div className="bg-primary text-primary-content rounded-full w-16 h-16 flex items-center justify-center">
-                    <span className="text-2xl font-bold">
-                      {getInitials(formData.display_name || profile?.display_name || null)}
-                    </span>
+                <div className="avatar">
+                  <div className="rounded-full w-16 h-16 flex items-center justify-center overflow-hidden bg-primary text-primary-content">
+                    {avatarPreview || profile?.avatar_url ? (
+                      <img
+                        src={avatarPreview || profile?.avatar_url || ""}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl font-bold">
+                        {getInitials(formData.display_name || profile?.display_name || null)}
+                      </span>
+                    )}
                   </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="btn btn-sm btn-outline cursor-pointer">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M4 5a2 2 0 012-2 1 1 0 001-1h6a1 1 0 001 1 2 2 0 012 2v5a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Change Photo
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                    />
+                  </label>
+                  {avatarFile && (
+                    <button
+                      onClick={handleAvatarUpload}
+                      className="btn btn-sm btn-primary"
+                      disabled={uploading}
+                    >
+                      {uploading ? (
+                        <>
+                          <span className="loading loading-spinner"></span>
+                          Uploading...
+                        </>
+                      ) : (
+                        "Upload"
+                      )}
+                    </button>
+                  )}
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold">

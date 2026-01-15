@@ -21,6 +21,12 @@ BEGIN
                  WHERE table_name = 'profiles' AND column_name = 'country_code') THEN
     ALTER TABLE profiles ADD COLUMN country_code TEXT DEFAULT '+1';
   END IF;
+  
+  -- Add avatar_url if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'avatar_url') THEN
+    ALTER TABLE profiles ADD COLUMN avatar_url TEXT;
+  END IF;
 END $$;
 
 -- 2. Ensure cards table has all required columns (add only if missing)
