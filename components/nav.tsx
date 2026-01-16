@@ -132,6 +132,9 @@ export default function Nav() {
                       <Link href="/profile">My Profile</Link>
                     </li>
                     <li>
+                      <Link href="/settings">Settings</Link>
+                    </li>
+                    <li>
                       <Link href="/claim">Claim Card</Link>
                     </li>
                     <li>
@@ -225,6 +228,9 @@ export default function Nav() {
                       )}
                       <li>
                         <Link href="/profile">My Profile</Link>
+                      </li>
+                      <li>
+                        <Link href="/settings">Settings</Link>
                       </li>
                       <li>
                         <Link href="/claim">Claim Card</Link>
