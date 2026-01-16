@@ -53,7 +53,7 @@ export default async function ProfilePage({
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,qr_code_url,show_qr_code,searchable,linkedin,twitter,instagram,facebook,tiktok,youtube,github,office_address,office_city,maps_link,best_time_to_contact,preferred_contact_method,department,team_name,manager,pronouns,name_pronunciation,bio,whatsapp,signal,telegram,sms_link,calendar_link,timezone,podcast_link,youtube_channel,sermon_series,featured_talk,company_name,division,office_phone,work_phone,personal_phone")
+    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,qr_code_url,show_qr_code,searchable,linkedin,twitter,instagram,facebook,tiktok,youtube,github,office_address,office_city,maps_link,best_time_to_contact,preferred_contact_method,department,team_name,manager,pronouns,name_pronunciation,bio,whatsapp,signal,telegram,sms_link,calendar_link,timezone,podcast_link,youtube_channel,sermon_series,featured_talk,company_name,division,office_phone,work_phone,personal_phone,primary_cta_type,primary_cta_value")
     .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 
@@ -94,6 +94,88 @@ export default async function ProfilePage({
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // Helper function to build primary CTA button
+  const buildPrimaryCTA = () => {
+    const ctaType = data.primary_cta_type || "save_contact";
+    const ctaValue = data.primary_cta_value;
+
+    switch (ctaType) {
+      case "save_contact":
+        return {
+          label: "Add to Contacts",
+          href: `/u/${data.handle}.vcf`,
+          enabled: true,
+        };
+
+      case "book_meeting":
+        const meetingUrl = ctaValue || data.calendar_link || data.website;
+        return {
+          label: "Book a Meeting",
+          href: meetingUrl || "#",
+          enabled: !!meetingUrl,
+        };
+
+      case "message_whatsapp":
+        let whatsappUrl: string | null = null;
+        if (ctaValue) {
+          // If it's already a full URL, use it
+          if (ctaValue.startsWith("http://") || ctaValue.startsWith("https://")) {
+            whatsappUrl = ctaValue;
+          } else if (ctaValue.startsWith("wa.me/")) {
+            whatsappUrl = `https://${ctaValue}`;
+          } else {
+            // Extract digits from phone number
+            const digits = ctaValue.replace(/\D/g, "");
+            whatsappUrl = `https://wa.me/${digits}`;
+          }
+        } else if (data.phone) {
+          const phoneDigits = (data.country_code || "+1").replace(/\D/g, "") + data.phone.replace(/\D/g, "");
+          whatsappUrl = `https://wa.me/${phoneDigits}`;
+        } else if (data.whatsapp) {
+          whatsappUrl = data.whatsapp.startsWith("http") ? data.whatsapp : `https://${data.whatsapp}`;
+        }
+        return {
+          label: "Message on WhatsApp",
+          href: whatsappUrl || "#",
+          enabled: !!whatsappUrl,
+        };
+
+      case "visit_website":
+        const websiteUrl = ctaValue || data.website;
+        return {
+          label: "Visit Website",
+          href: websiteUrl ? (websiteUrl.startsWith("http") ? websiteUrl : `https://${websiteUrl}`) : "#",
+          enabled: !!websiteUrl,
+        };
+
+      case "email_me":
+        return {
+          label: "Email Me",
+          href: data.email ? `mailto:${data.email}` : "#",
+          enabled: !!data.email,
+        };
+
+      case "call_me":
+        const phoneNumber = data.phone ? `${data.country_code || "+1"}${data.phone}` : null;
+        return {
+          label: "Call Me",
+          href: phoneNumber ? `tel:${phoneNumber}` : "#",
+          enabled: !!phoneNumber,
+        };
+
+      default:
+        // Fallback to save_contact
+        return {
+          label: "Add to Contacts",
+          href: `/u/${data.handle}.vcf`,
+          enabled: true,
+        };
+    }
+  };
+
+  const primaryCTA = buildPrimaryCTA();
+  const ctaType = data.primary_cta_type || "save_contact";
 
   return (
     <main className="min-h-screen p-5 bg-base-200">
@@ -163,11 +245,31 @@ export default async function ProfilePage({
             )}
 
             <div className="mt-4 grid gap-2">
-              <a className="btn btn-primary" href={`/u/${data.handle}.vcf`}>
-                Add to Contacts
-              </a>
+              {/* Primary CTA Button */}
+              {primaryCTA.enabled ? (
+                <a 
+                  className="btn btn-primary" 
+                  href={primaryCTA.href}
+                  target={primaryCTA.href.startsWith("http") && !primaryCTA.href.startsWith("/") ? "_blank" : undefined}
+                  rel={primaryCTA.href.startsWith("http") && !primaryCTA.href.startsWith("/") ? "noopener noreferrer" : undefined}
+                >
+                  {primaryCTA.label}
+                </a>
+              ) : (
+                <button className="btn btn-primary" disabled>
+                  {primaryCTA.label}
+                </button>
+              )}
 
-              {data.phone ? (
+              {/* Add to Contacts - Show as secondary if primary CTA is not save_contact */}
+              {primaryCTA.label !== "Add to Contacts" && (
+                <a className="btn btn-outline" href={`/u/${data.handle}.vcf`}>
+                  Add to Contacts
+                </a>
+              )}
+
+              {/* Secondary Actions */}
+              {data.phone && ctaType !== "call_me" ? (
                 <a className="btn btn-outline" href={`tel:${data.country_code || "+1"}${data.phone}`}>Call</a>
               ) : null}
 
@@ -183,11 +285,11 @@ export default async function ProfilePage({
                 <a className="btn btn-outline" href={`tel:${data.personal_phone}`}>Personal Phone</a>
               ) : null}
 
-              {data.email ? (
+              {data.email && ctaType !== "email_me" ? (
                 <a className="btn btn-outline" href={`mailto:${data.email}`}>Email</a>
               ) : null}
 
-              {data.website ? (
+              {data.website && ctaType !== "visit_website" ? (
                 <Link 
                   className="btn btn-outline" 
                   href={data.website.startsWith("http") ? data.website : `https://${data.website}`}
@@ -198,7 +300,7 @@ export default async function ProfilePage({
                 </Link>
               ) : null}
 
-              {data.calendar_link && (
+              {data.calendar_link && ctaType !== "book_meeting" && (
                 <a 
                   className="btn btn-outline" 
                   href={data.calendar_link}
@@ -257,11 +359,11 @@ export default async function ProfilePage({
             )}
 
             {/* Messaging Links */}
-            {(data.whatsapp || data.signal || data.telegram || data.sms_link) && (
+            {((data.whatsapp && ctaType !== "message_whatsapp") || data.signal || data.telegram || data.sms_link) && (
               <div className="mt-4 pt-4 border-t border-base-300">
                 <h3 className="text-sm font-semibold mb-3 text-base-content/70">💬 Message</h3>
                 <div className="flex flex-wrap gap-2">
-                  {data.whatsapp && (
+                  {data.whatsapp && ctaType !== "message_whatsapp" && (
                     <a 
                       className="btn btn-sm btn-outline" 
                       href={data.whatsapp.startsWith("http") ? data.whatsapp : `https://${data.whatsapp}`}
