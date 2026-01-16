@@ -278,10 +278,10 @@ export default function ProfilePage() {
         country_code: formData.countryCode || "+1",
         email: formData.email.trim() || null,
         website: formData.website.trim() || null,
-          avatar_url: profile?.avatar_url || null,
-          qr_code_url: profile?.qr_code_url || null,
-          user_type: profile?.user_type || null,
-          searchable: formData.searchable ?? false,
+        avatar_url: profile?.avatar_url || null,
+        qr_code_url: profile?.qr_code_url || null,
+        user_type: profile?.user_type || null,
+        searchable: formData.searchable ?? false,
         linkedin: formData.linkedin.trim() || null,
         twitter: formData.twitter.trim() || null,
         instagram: formData.instagram.trim() || null,
@@ -626,7 +626,7 @@ export default function ProfilePage() {
 
     try {
       const profileUrl = `${window.location.origin}/u/${encodeURIComponent(profile.handle)}`;
-      
+
       // Generate QR code as data URL
       const qrCodeDataUrl = await QRCode.toDataURL(profileUrl, {
         width: 512,
@@ -1300,7 +1300,7 @@ export default function ProfilePage() {
                         )}
                       </div>
                     </div>
-                    <p className="text-sm text-base-content/70 mt-2 break-words max-w-full">
+                    <p className="text-sm text-base-content/70 mt-2 max-w-full">
                       Generate a QR code for your profile URL or upload your own custom QR code. The QR code will be displayed on your public profile page.
                     </p>
                   </div>
