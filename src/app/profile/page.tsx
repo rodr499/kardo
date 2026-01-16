@@ -1036,50 +1036,50 @@ export default function ProfilePage() {
                   {(formData.primary_cta_type === "book_meeting" ||
                     formData.primary_cta_type === "message_whatsapp" ||
                     formData.primary_cta_type === "visit_website") && (
-                    <fieldset className="fieldset">
-                      <div className="form-control">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                          <label className="label sm:w-32">
-                            <span className="label-text font-semibold">
-                              {formData.primary_cta_type === "book_meeting"
-                                ? "Booking URL"
-                                : formData.primary_cta_type === "message_whatsapp"
-                                ? "Phone/URL (Optional)"
-                                : "Website URL (Optional)"}
-                            </span>
-                          </label>
-                          <div className="flex-1">
-                            <input
-                              type={formData.primary_cta_type === "message_whatsapp" ? "text" : "url"}
-                              className="input input-bordered flex-1"
-                              value={formData.primary_cta_value}
-                              onChange={(e) =>
-                                setFormData({ ...formData, primary_cta_value: e.target.value })
-                              }
-                              placeholder={
-                                formData.primary_cta_type === "book_meeting"
-                                  ? "https://calendly.com/your-name"
+                      <fieldset className="fieldset">
+                        <div className="form-control">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <label className="label sm:w-32">
+                              <span className="label-text font-semibold">
+                                {formData.primary_cta_type === "book_meeting"
+                                  ? "Booking URL"
                                   : formData.primary_cta_type === "message_whatsapp"
-                                  ? "1234567890 or https://wa.me/1234567890"
-                                  : "https://example.com"
-                              }
-                            />
-                            <p className="label text-xs text-base-content/60 mt-1">
-                              {formData.primary_cta_type === "book_meeting" && (
-                                <>If empty, will use your "Calendar Link" or "Website" field.</>
-                              )}
-                              {formData.primary_cta_type === "message_whatsapp" && (
-                                <>If empty, will use your profile phone number.</>
-                              )}
-                              {formData.primary_cta_type === "visit_website" && (
-                                <>If empty, will use your "Website" field.</>
-                              )}
-                            </p>
+                                    ? "Phone/URL (Optional)"
+                                    : "Website URL (Optional)"}
+                              </span>
+                            </label>
+                            <div className="flex-1">
+                              <input
+                                type={formData.primary_cta_type === "message_whatsapp" ? "text" : "url"}
+                                className="input input-bordered flex-1"
+                                value={formData.primary_cta_value}
+                                onChange={(e) =>
+                                  setFormData({ ...formData, primary_cta_value: e.target.value })
+                                }
+                                placeholder={
+                                  formData.primary_cta_type === "book_meeting"
+                                    ? "https://calendly.com/your-name"
+                                    : formData.primary_cta_type === "message_whatsapp"
+                                      ? "1234567890 or https://wa.me/1234567890"
+                                      : "https://example.com"
+                                }
+                              />
+                              <p className="label text-xs text-base-content/60 mt-1">
+                                {formData.primary_cta_type === "book_meeting" && (
+                                  <>If empty, will use your "Calendar Link" or "Website" field.</>
+                                )}
+                                {formData.primary_cta_type === "message_whatsapp" && (
+                                  <>If empty, will use your profile phone number.</>
+                                )}
+                                {formData.primary_cta_type === "visit_website" && (
+                                  <>If empty, will use your "Website" field.</>
+                                )}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </fieldset>
-                  )}
+                      </fieldset>
+                    )}
                 </div>
 
                 {/* Social & Links Tab */}
