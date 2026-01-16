@@ -1,12 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
 export default function Nav() {
   const router = useRouter();
+  const pathname = usePathname();
+  
+  // Hide nav on public profile pages (/u/[handle])
+  if (pathname?.startsWith("/u/") && pathname !== "/u") {
+    return null;
+  }
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
