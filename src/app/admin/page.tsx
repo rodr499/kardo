@@ -125,7 +125,7 @@ export default function AdminPage() {
     }
   };
 
-  const requestPasswordConfirmation = (type: "unclaim" | "assign", code: string, currentValue?: boolean) => {
+  const requestPasswordConfirmation = (type: "unclaim" | "assign" | "delete", code: string, currentValue?: boolean) => {
     setPendingAction({ type, code, currentValue });
     setShowPasswordModal(true);
     setPassword("");
