@@ -28,6 +28,12 @@ BEGIN
     ALTER TABLE profiles ADD COLUMN avatar_url TEXT;
   END IF;
   
+  -- Add qr_code_url if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'qr_code_url') THEN
+    ALTER TABLE profiles ADD COLUMN qr_code_url TEXT;
+  END IF;
+  
   -- Add user_type if it doesn't exist (super_admin or cardholder)
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                  WHERE table_name = 'profiles' AND column_name = 'user_type') THEN
@@ -74,6 +80,145 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                  WHERE table_name = 'profiles' AND column_name = 'github') THEN
     ALTER TABLE profiles ADD COLUMN github TEXT;
+  END IF;
+  
+  -- Location / Office info
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'office_address') THEN
+    ALTER TABLE profiles ADD COLUMN office_address TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'office_city') THEN
+    ALTER TABLE profiles ADD COLUMN office_city TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'maps_link') THEN
+    ALTER TABLE profiles ADD COLUMN maps_link TEXT;
+  END IF;
+  
+  -- Availability / Contact preference
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'best_time_to_contact') THEN
+    ALTER TABLE profiles ADD COLUMN best_time_to_contact TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'preferred_contact_method') THEN
+    ALTER TABLE profiles ADD COLUMN preferred_contact_method TEXT;
+  END IF;
+  
+  -- Department / Team
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'department') THEN
+    ALTER TABLE profiles ADD COLUMN department TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'team_name') THEN
+    ALTER TABLE profiles ADD COLUMN team_name TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'manager') THEN
+    ALTER TABLE profiles ADD COLUMN manager TEXT;
+  END IF;
+  
+  -- Pronouns & Name pronunciation
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'pronouns') THEN
+    ALTER TABLE profiles ADD COLUMN pronouns TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'name_pronunciation') THEN
+    ALTER TABLE profiles ADD COLUMN name_pronunciation TEXT;
+  END IF;
+  
+  -- Bio / About
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'bio') THEN
+    ALTER TABLE profiles ADD COLUMN bio TEXT;
+  END IF;
+  
+  -- Messaging-first links
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'whatsapp') THEN
+    ALTER TABLE profiles ADD COLUMN whatsapp TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'signal') THEN
+    ALTER TABLE profiles ADD COLUMN signal TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'telegram') THEN
+    ALTER TABLE profiles ADD COLUMN telegram TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'sms_link') THEN
+    ALTER TABLE profiles ADD COLUMN sms_link TEXT;
+  END IF;
+  
+  -- Calendar scheduling
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'calendar_link') THEN
+    ALTER TABLE profiles ADD COLUMN calendar_link TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'timezone') THEN
+    ALTER TABLE profiles ADD COLUMN timezone TEXT;
+  END IF;
+  
+  -- Media / content
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'podcast_link') THEN
+    ALTER TABLE profiles ADD COLUMN podcast_link TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'youtube_channel') THEN
+    ALTER TABLE profiles ADD COLUMN youtube_channel TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'sermon_series') THEN
+    ALTER TABLE profiles ADD COLUMN sermon_series TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'featured_talk') THEN
+    ALTER TABLE profiles ADD COLUMN featured_talk TEXT;
+  END IF;
+  
+  -- Organization details
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'company_name') THEN
+    ALTER TABLE profiles ADD COLUMN company_name TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'division') THEN
+    ALTER TABLE profiles ADD COLUMN division TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'office_phone') THEN
+    ALTER TABLE profiles ADD COLUMN office_phone TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'work_phone') THEN
+    ALTER TABLE profiles ADD COLUMN work_phone TEXT;
+  END IF;
+  
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'personal_phone') THEN
+    ALTER TABLE profiles ADD COLUMN personal_phone TEXT;
   END IF;
 END $$;
 
@@ -155,6 +300,7 @@ CREATE POLICY "Users can delete their own profile"
 DROP POLICY IF EXISTS "Cards are viewable by everyone" ON cards;
 DROP POLICY IF EXISTS "Users can claim cards" ON cards;
 DROP POLICY IF EXISTS "Super admins can insert cards" ON cards;
+DROP POLICY IF EXISTS "Super admins can delete cards" ON cards;
 
 -- Anyone can read cards (for card lookup)
 CREATE POLICY "Cards are viewable by everyone"
@@ -187,6 +333,16 @@ CREATE POLICY "Super admins can update any card"
 CREATE POLICY "Super admins can insert cards"
   ON cards FOR INSERT
   WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND user_type = 'super_admin'
+    )
+  );
+
+-- Super admins can delete cards
+CREATE POLICY "Super admins can delete cards"
+  ON cards FOR DELETE
+  USING (
     EXISTS (
       SELECT 1 FROM profiles 
       WHERE id = auth.uid() AND user_type = 'super_admin'

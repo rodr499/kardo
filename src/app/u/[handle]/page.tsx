@@ -53,7 +53,7 @@ export default async function ProfilePage({
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,searchable,linkedin,twitter,instagram,facebook,tiktok,youtube,github")
+    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,qr_code_url,searchable,linkedin,twitter,instagram,facebook,tiktok,youtube,github,office_address,office_city,maps_link,best_time_to_contact,preferred_contact_method,department,team_name,manager,pronouns,name_pronunciation,bio,whatsapp,signal,telegram,sms_link,calendar_link,timezone,podcast_link,youtube_channel,sermon_series,featured_talk,company_name,division,office_phone,work_phone,personal_phone")
     .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 
@@ -119,8 +119,48 @@ export default async function ProfilePage({
               <div>
                 <h1 className="text-2xl font-bold">{data.display_name}</h1>
                 {data.title ? <p className="text-base-content/70">{data.title}</p> : null}
+                {data.pronouns && (
+                  <p className="text-sm text-base-content/60 mt-1">{data.pronouns}</p>
+                )}
               </div>
             </div>
+
+            {/* Bio */}
+            {data.bio && (
+              <div className="mb-4">
+                <p className="text-sm text-base-content/80">{data.bio}</p>
+              </div>
+            )}
+
+            {/* Organization Details */}
+            {(data.company_name || data.department || data.team_name) && (
+              <div className="mb-4">
+                {data.company_name && (
+                  <p className="text-sm font-semibold">{data.company_name}</p>
+                )}
+                {data.division && (
+                  <p className="text-sm text-base-content/70">{data.division}</p>
+                )}
+                {data.department && (
+                  <p className="text-sm text-base-content/70">{data.department}</p>
+                )}
+                {data.team_name && (
+                  <p className="text-sm text-base-content/70">{data.team_name}</p>
+                )}
+                {data.manager && (
+                  <p className="text-sm text-base-content/60 mt-1">Manager: {data.manager}</p>
+                )}
+              </div>
+            )}
+
+            {/* Name Pronunciation */}
+            {data.name_pronunciation && (
+              <div className="mb-4">
+                <p className="text-sm text-base-content/70">
+                  <span className="font-semibold">Pronunciation:</span> {data.name_pronunciation}
+                </p>
+              </div>
+            )}
 
             <div className="mt-4 grid gap-2">
               <a className="btn btn-primary" href={`/u/${data.handle}.vcf`}>
@@ -129,6 +169,18 @@ export default async function ProfilePage({
 
               {data.phone ? (
                 <a className="btn btn-outline" href={`tel:${data.country_code || "+1"}${data.phone}`}>Call</a>
+              ) : null}
+
+              {data.work_phone ? (
+                <a className="btn btn-outline" href={`tel:${data.work_phone}`}>Work Phone</a>
+              ) : null}
+
+              {data.office_phone ? (
+                <a className="btn btn-outline" href={`tel:${data.office_phone}`}>Office Phone</a>
+              ) : null}
+
+              {data.personal_phone ? (
+                <a className="btn btn-outline" href={`tel:${data.personal_phone}`}>Personal Phone</a>
               ) : null}
 
               {data.email ? (
@@ -145,7 +197,170 @@ export default async function ProfilePage({
                   Website
                 </Link>
               ) : null}
+
+              {data.calendar_link && (
+                <a 
+                  className="btn btn-outline" 
+                  href={data.calendar_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  📅 Book a Meeting
+                </a>
+              )}
+
+              {data.maps_link && (
+                <a 
+                  className="btn btn-outline" 
+                  href={data.maps_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  📍 Get Directions
+                </a>
+              )}
             </div>
+
+            {/* Availability */}
+            {(data.best_time_to_contact || data.preferred_contact_method) && (
+              <div className="mt-4 pt-4 border-t border-base-300">
+                <h3 className="text-sm font-semibold mb-2 text-base-content/70">Availability</h3>
+                {data.best_time_to_contact && (
+                  <p className="text-sm text-base-content/80 mb-1">
+                    <span className="font-semibold">Best time:</span> {data.best_time_to_contact}
+                  </p>
+                )}
+                {data.preferred_contact_method && (
+                  <p className="text-sm text-base-content/80">
+                    <span className="font-semibold">Preferred method:</span> {data.preferred_contact_method}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Location */}
+            {(data.office_address || data.office_city) && (
+              <div className="mt-4 pt-4 border-t border-base-300">
+                <h3 className="text-sm font-semibold mb-2 text-base-content/70">📍 Location</h3>
+                {data.office_address && (
+                  <p className="text-sm text-base-content/80">{data.office_address}</p>
+                )}
+                {data.office_city && (
+                  <p className="text-sm text-base-content/80">{data.office_city}</p>
+                )}
+              </div>
+            )}
+
+            {/* Messaging Links */}
+            {(data.whatsapp || data.signal || data.telegram || data.sms_link) && (
+              <div className="mt-4 pt-4 border-t border-base-300">
+                <h3 className="text-sm font-semibold mb-3 text-base-content/70">💬 Message</h3>
+                <div className="flex flex-wrap gap-2">
+                  {data.whatsapp && (
+                    <a 
+                      className="btn btn-sm btn-outline" 
+                      href={data.whatsapp.startsWith("http") ? data.whatsapp : `https://${data.whatsapp}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      WhatsApp
+                    </a>
+                  )}
+                  {data.signal && (
+                    <a 
+                      className="btn btn-sm btn-outline" 
+                      href={data.signal.startsWith("http") ? data.signal : `https://${data.signal}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Signal
+                    </a>
+                  )}
+                  {data.telegram && (
+                    <a 
+                      className="btn btn-sm btn-outline" 
+                      href={data.telegram.startsWith("http") ? data.telegram : `https://${data.telegram}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Telegram
+                    </a>
+                  )}
+                  {data.sms_link && (
+                    <a 
+                      className="btn btn-sm btn-outline" 
+                      href={data.sms_link}
+                    >
+                      SMS
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Media / Content */}
+            {(data.podcast_link || data.youtube_channel || data.sermon_series || data.featured_talk) && (
+              <div className="mt-4 pt-4 border-t border-base-300">
+                <h3 className="text-sm font-semibold mb-3 text-base-content/70">🎧 Media & Content</h3>
+                <div className="flex flex-wrap gap-2">
+                  {data.podcast_link && (
+                    <a 
+                      className="btn btn-sm btn-outline" 
+                      href={data.podcast_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Podcast
+                    </a>
+                  )}
+                  {data.youtube_channel && (
+                    <a 
+                      className="btn btn-sm btn-outline" 
+                      href={data.youtube_channel}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      YouTube Channel
+                    </a>
+                  )}
+                  {data.sermon_series && (
+                    <a 
+                      className="btn btn-sm btn-outline" 
+                      href={data.sermon_series}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Sermon Series
+                    </a>
+                  )}
+                  {data.featured_talk && (
+                    <a 
+                      className="btn btn-sm btn-outline" 
+                      href={data.featured_talk}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Featured Talk
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {data.qr_code_url && (
+              <div className="mt-6 pt-6 border-t border-base-300">
+                <h3 className="text-sm font-semibold mb-3 text-base-content/70 text-center">Scan to Connect</h3>
+                <div className="flex justify-center">
+                  <div className="border-2 border-base-300 rounded-lg p-4 bg-base-200">
+                    <img
+                      src={data.qr_code_url}
+                      alt="QR Code"
+                      className="w-48 h-48 object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Social Media Links */}
             {(data.linkedin || data.twitter || data.instagram || data.facebook || data.tiktok || data.youtube || data.github) && (

@@ -15,6 +15,7 @@ interface Profile {
   email: string | null;
   website: string | null;
   avatar_url: string | null;
+  qr_code_url: string | null;
   user_type: string | null;
   searchable: boolean | null;
   linkedin: string | null;
@@ -24,6 +25,41 @@ interface Profile {
   tiktok: string | null;
   youtube: string | null;
   github: string | null;
+  // Location / Office info
+  office_address: string | null;
+  office_city: string | null;
+  maps_link: string | null;
+  // Availability / Contact preference
+  best_time_to_contact: string | null;
+  preferred_contact_method: string | null;
+  // Department / Team
+  department: string | null;
+  team_name: string | null;
+  manager: string | null;
+  // Pronouns & Name pronunciation
+  pronouns: string | null;
+  name_pronunciation: string | null;
+  // Bio / About
+  bio: string | null;
+  // Messaging-first links
+  whatsapp: string | null;
+  signal: string | null;
+  telegram: string | null;
+  sms_link: string | null;
+  // Calendar scheduling
+  calendar_link: string | null;
+  timezone: string | null;
+  // Media / content
+  podcast_link: string | null;
+  youtube_channel: string | null;
+  sermon_series: string | null;
+  featured_talk: string | null;
+  // Organization details
+  company_name: string | null;
+  division: string | null;
+  office_phone: string | null;
+  work_phone: string | null;
+  personal_phone: string | null;
 }
 
 interface Card {
@@ -44,9 +80,6 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [deletePassword, setDeletePassword] = useState("");
-  const [deletePasswordError, setDeletePasswordError] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     handle: "",
@@ -64,6 +97,41 @@ export default function ProfilePage() {
     tiktok: "",
     youtube: "",
     github: "",
+    // Location / Office info
+    office_address: "",
+    office_city: "",
+    maps_link: "",
+    // Availability / Contact preference
+    best_time_to_contact: "",
+    preferred_contact_method: "",
+    // Department / Team
+    department: "",
+    team_name: "",
+    manager: "",
+    // Pronouns & Name pronunciation
+    pronouns: "",
+    name_pronunciation: "",
+    // Bio / About
+    bio: "",
+    // Messaging-first links
+    whatsapp: "",
+    signal: "",
+    telegram: "",
+    sms_link: "",
+    // Calendar scheduling
+    calendar_link: "",
+    timezone: "",
+    // Media / content
+    podcast_link: "",
+    youtube_channel: "",
+    sermon_series: "",
+    featured_talk: "",
+    // Organization details
+    company_name: "",
+    division: "",
+    office_phone: "",
+    work_phone: "",
+    personal_phone: "",
   });
 
   // Common country codes
@@ -96,6 +164,65 @@ export default function ProfilePage() {
     { code: "+27", country: "ZA" },
   ];
 
+  // Common timezones
+  const timezones = [
+    { value: "", label: "Select timezone" },
+    { value: "America/New_York", label: "Eastern Time (US & Canada)" },
+    { value: "America/Chicago", label: "Central Time (US & Canada)" },
+    { value: "America/Denver", label: "Mountain Time (US & Canada)" },
+    { value: "America/Los_Angeles", label: "Pacific Time (US & Canada)" },
+    { value: "America/Phoenix", label: "Arizona" },
+    { value: "America/Anchorage", label: "Alaska" },
+    { value: "Pacific/Honolulu", label: "Hawaii" },
+    { value: "America/Toronto", label: "Toronto" },
+    { value: "America/Vancouver", label: "Vancouver" },
+    { value: "America/Mexico_City", label: "Mexico City" },
+    { value: "America/Sao_Paulo", label: "São Paulo" },
+    { value: "America/Buenos_Aires", label: "Buenos Aires" },
+    { value: "Europe/London", label: "London" },
+    { value: "Europe/Paris", label: "Paris" },
+    { value: "Europe/Berlin", label: "Berlin" },
+    { value: "Europe/Rome", label: "Rome" },
+    { value: "Europe/Madrid", label: "Madrid" },
+    { value: "Europe/Amsterdam", label: "Amsterdam" },
+    { value: "Europe/Brussels", label: "Brussels" },
+    { value: "Europe/Zurich", label: "Zurich" },
+    { value: "Europe/Vienna", label: "Vienna" },
+    { value: "Europe/Stockholm", label: "Stockholm" },
+    { value: "Europe/Oslo", label: "Oslo" },
+    { value: "Europe/Copenhagen", label: "Copenhagen" },
+    { value: "Europe/Helsinki", label: "Helsinki" },
+    { value: "Europe/Dublin", label: "Dublin" },
+    { value: "Europe/Lisbon", label: "Lisbon" },
+    { value: "Europe/Warsaw", label: "Warsaw" },
+    { value: "Europe/Prague", label: "Prague" },
+    { value: "Europe/Budapest", label: "Budapest" },
+    { value: "Europe/Athens", label: "Athens" },
+    { value: "Europe/Istanbul", label: "Istanbul" },
+    { value: "Europe/Moscow", label: "Moscow" },
+    { value: "Asia/Dubai", label: "Dubai" },
+    { value: "Asia/Kolkata", label: "Mumbai, New Delhi" },
+    { value: "Asia/Dhaka", label: "Dhaka" },
+    { value: "Asia/Bangkok", label: "Bangkok" },
+    { value: "Asia/Singapore", label: "Singapore" },
+    { value: "Asia/Hong_Kong", label: "Hong Kong" },
+    { value: "Asia/Shanghai", label: "Shanghai" },
+    { value: "Asia/Tokyo", label: "Tokyo" },
+    { value: "Asia/Seoul", label: "Seoul" },
+    { value: "Australia/Sydney", label: "Sydney" },
+    { value: "Australia/Melbourne", label: "Melbourne" },
+    { value: "Australia/Brisbane", label: "Brisbane" },
+    { value: "Australia/Perth", label: "Perth" },
+    { value: "Pacific/Auckland", label: "Auckland" },
+    { value: "Africa/Johannesburg", label: "Johannesburg" },
+    { value: "Africa/Cairo", label: "Cairo" },
+    { value: "Africa/Lagos", label: "Lagos" },
+    { value: "America/Lima", label: "Lima" },
+    { value: "America/Bogota", label: "Bogota" },
+    { value: "America/Santiago", label: "Santiago" },
+    { value: "America/Caracas", label: "Caracas" },
+  ];
+
   useEffect(() => {
     const loadProfile = async () => {
       const supabase = createSupabaseClient();
@@ -111,7 +238,7 @@ export default function ProfilePage() {
       // Load profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*,qr_code_url")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -152,6 +279,41 @@ export default function ProfilePage() {
           tiktok: profileData.tiktok || "",
           youtube: profileData.youtube || "",
           github: profileData.github || "",
+          // Location / Office info
+          office_address: profileData.office_address || "",
+          office_city: profileData.office_city || "",
+          maps_link: profileData.maps_link || "",
+          // Availability / Contact preference
+          best_time_to_contact: profileData.best_time_to_contact || "",
+          preferred_contact_method: profileData.preferred_contact_method || "",
+          // Department / Team
+          department: profileData.department || "",
+          team_name: profileData.team_name || "",
+          manager: profileData.manager || "",
+          // Pronouns & Name pronunciation
+          pronouns: profileData.pronouns || "",
+          name_pronunciation: profileData.name_pronunciation || "",
+          // Bio / About
+          bio: profileData.bio || "",
+          // Messaging-first links
+          whatsapp: profileData.whatsapp || "",
+          signal: profileData.signal || "",
+          telegram: profileData.telegram || "",
+          sms_link: profileData.sms_link || "",
+          // Calendar scheduling
+          calendar_link: profileData.calendar_link || "",
+          timezone: profileData.timezone || "",
+          // Media / content
+          podcast_link: profileData.podcast_link || "",
+          youtube_channel: profileData.youtube_channel || "",
+          sermon_series: profileData.sermon_series || "",
+          featured_talk: profileData.featured_talk || "",
+          // Organization details
+          company_name: profileData.company_name || "",
+          division: profileData.division || "",
+          office_phone: profileData.office_phone || "",
+          work_phone: profileData.work_phone || "",
+          personal_phone: profileData.personal_phone || "",
         });
 
         // Set avatar preview if avatar_url exists
@@ -178,6 +340,41 @@ export default function ProfilePage() {
           tiktok: "",
           youtube: "",
           github: "",
+          // Location / Office info
+          office_address: "",
+          office_city: "",
+          maps_link: "",
+          // Availability / Contact preference
+          best_time_to_contact: "",
+          preferred_contact_method: "",
+          // Department / Team
+          department: "",
+          team_name: "",
+          manager: "",
+          // Pronouns & Name pronunciation
+          pronouns: "",
+          name_pronunciation: "",
+          // Bio / About
+          bio: "",
+          // Messaging-first links
+          whatsapp: "",
+          signal: "",
+          telegram: "",
+          sms_link: "",
+          // Calendar scheduling
+          calendar_link: "",
+          timezone: "",
+          // Media / content
+          podcast_link: "",
+          youtube_channel: "",
+          sermon_series: "",
+          featured_talk: "",
+          // Organization details
+          company_name: "",
+          division: "",
+          office_phone: "",
+          work_phone: "",
+          personal_phone: "",
         });
       }
 
@@ -255,6 +452,41 @@ export default function ProfilePage() {
           tiktok: formData.tiktok.trim() || null,
           youtube: formData.youtube.trim() || null,
           github: formData.github.trim() || null,
+          // Location / Office info
+          office_address: formData.office_address.trim() || null,
+          office_city: formData.office_city.trim() || null,
+          maps_link: formData.maps_link.trim() || null,
+          // Availability / Contact preference
+          best_time_to_contact: formData.best_time_to_contact.trim() || null,
+          preferred_contact_method: formData.preferred_contact_method.trim() || null,
+          // Department / Team
+          department: formData.department.trim() || null,
+          team_name: formData.team_name.trim() || null,
+          manager: formData.manager.trim() || null,
+          // Pronouns & Name pronunciation
+          pronouns: formData.pronouns.trim() || null,
+          name_pronunciation: formData.name_pronunciation.trim() || null,
+          // Bio / About
+          bio: formData.bio.trim() || null,
+          // Messaging-first links
+          whatsapp: formData.whatsapp.trim() || null,
+          signal: formData.signal.trim() || null,
+          telegram: formData.telegram.trim() || null,
+          sms_link: formData.sms_link.trim() || null,
+          // Calendar scheduling
+          calendar_link: formData.calendar_link.trim() || null,
+          timezone: formData.timezone.trim() || null,
+          // Media / content
+          podcast_link: formData.podcast_link.trim() || null,
+          youtube_channel: formData.youtube_channel.trim() || null,
+          sermon_series: formData.sermon_series.trim() || null,
+          featured_talk: formData.featured_talk.trim() || null,
+          // Organization details
+          company_name: formData.company_name.trim() || null,
+          division: formData.division.trim() || null,
+          office_phone: formData.office_phone.trim() || null,
+          work_phone: formData.work_phone.trim() || null,
+          personal_phone: formData.personal_phone.trim() || null,
         });
 
       if (updateError) throw updateError;
@@ -270,6 +502,7 @@ export default function ProfilePage() {
         email: formData.email.trim() || null,
         website: formData.website.trim() || null,
         avatar_url: profile?.avatar_url || null,
+        qr_code_url: profile?.qr_code_url || null,
         user_type: profile?.user_type || null,
         searchable: formData.searchable ?? false,
         linkedin: formData.linkedin.trim() || null,
@@ -279,6 +512,41 @@ export default function ProfilePage() {
         tiktok: formData.tiktok.trim() || null,
         youtube: formData.youtube.trim() || null,
         github: formData.github.trim() || null,
+        // Location / Office info
+        office_address: formData.office_address.trim() || null,
+        office_city: formData.office_city.trim() || null,
+        maps_link: formData.maps_link.trim() || null,
+        // Availability / Contact preference
+        best_time_to_contact: formData.best_time_to_contact.trim() || null,
+        preferred_contact_method: formData.preferred_contact_method.trim() || null,
+        // Department / Team
+        department: formData.department.trim() || null,
+        team_name: formData.team_name.trim() || null,
+        manager: formData.manager.trim() || null,
+        // Pronouns & Name pronunciation
+        pronouns: formData.pronouns.trim() || null,
+        name_pronunciation: formData.name_pronunciation.trim() || null,
+        // Bio / About
+        bio: formData.bio.trim() || null,
+        // Messaging-first links
+        whatsapp: formData.whatsapp.trim() || null,
+        signal: formData.signal.trim() || null,
+        telegram: formData.telegram.trim() || null,
+        sms_link: formData.sms_link.trim() || null,
+        // Calendar scheduling
+        calendar_link: formData.calendar_link.trim() || null,
+        timezone: formData.timezone.trim() || null,
+        // Media / content
+        podcast_link: formData.podcast_link.trim() || null,
+        youtube_channel: formData.youtube_channel.trim() || null,
+        sermon_series: formData.sermon_series.trim() || null,
+        featured_talk: formData.featured_talk.trim() || null,
+        // Organization details
+        company_name: formData.company_name.trim() || null,
+        division: formData.division.trim() || null,
+        office_phone: formData.office_phone.trim() || null,
+        work_phone: formData.work_phone.trim() || null,
+        personal_phone: formData.personal_phone.trim() || null,
       });
 
       setTimeout(() => setSuccess(false), 3000);
@@ -294,59 +562,6 @@ export default function ProfilePage() {
     await supabase.auth.signOut();
     router.push("/");
     router.refresh();
-  };
-
-  const handleDeleteAccount = async () => {
-    if (!deletePassword) {
-      setDeletePasswordError("Please enter your password to confirm");
-      return;
-    }
-
-    setDeleting(true);
-    setDeletePasswordError(null);
-
-    try {
-      const supabase = createSupabaseClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user?.email) {
-        throw new Error("User not found");
-      }
-
-      // Verify password
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: deletePassword,
-      });
-
-      if (authError) {
-        setDeletePasswordError("Incorrect password");
-        setDeleting(false);
-        return;
-      }
-
-      // Password verified, proceed with deletion
-      const response = await fetch("/api/account/delete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to delete account");
-      }
-
-      // Account deleted successfully, redirect to home
-      router.push("/");
-      router.refresh();
-    } catch (err: any) {
-      setDeletePasswordError(err.message || "Failed to delete account");
-      setDeleting(false);
-    }
   };
 
   const handleShare = async (handleOrCode: string, isCard: boolean = false) => {
@@ -610,7 +825,17 @@ export default function ProfilePage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="divider">Profile Information</div>
+              <div className="tabs tabs-lifted">
+                {/* Basic Info Tab */}
+                <label className="tab">
+                  <input type="radio" name="profile_tabs" defaultChecked />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 me-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                  </svg>
+                  Basic Info
+                </label>
+                <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
+                  <div className="divider">Profile Information</div>
 
               <fieldset className="fieldset">
                 <div className="form-control">
@@ -759,8 +984,18 @@ export default function ProfilePage() {
                   </div>
                 </div>
               </fieldset>
+                </div>
 
-              <div className="divider mt-6">Social Media</div>
+                {/* Social & Links Tab */}
+                <label className="tab">
+                  <input type="radio" name="profile_tabs" />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 me-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
+                  </svg>
+                  Social & Links
+                </label>
+                <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
+                  <div className="divider">Social Media</div>
 
               <fieldset className="fieldset">
                 <div className="form-control">
@@ -895,37 +1130,566 @@ export default function ProfilePage() {
                 </div>
               </fieldset>
 
-              <div className="divider mt-6">Privacy Settings</div>
+                  <div className="divider mt-6">💬 Messaging Links</div>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">WhatsApp</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.whatsapp}
+                          onChange={(e) =>
+                            setFormData({ ...formData, whatsapp: e.target.value })
+                          }
+                          placeholder="https://wa.me/1234567890"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Signal</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.signal}
+                          onChange={(e) =>
+                            setFormData({ ...formData, signal: e.target.value })
+                          }
+                          placeholder="Signal username or link"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Telegram</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.telegram}
+                          onChange={(e) =>
+                            setFormData({ ...formData, telegram: e.target.value })
+                          }
+                          placeholder="https://t.me/username"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">SMS Link</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.sms_link}
+                          onChange={(e) =>
+                            setFormData({ ...formData, sms_link: e.target.value })
+                          }
+                          placeholder="sms:+1234567890"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+
+                {/* Work & Organization Tab */}
+                <label className="tab">
+                  <input type="radio" name="profile_tabs" />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 me-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 .414-.336.75-.75.75h-4.5a.75.75 0 0 1-.75-.75v-4.25m0 0h4.125c.621 0 1.125-.504 1.125-1.125V11.25c0-4.556-4.03-8.25-9-8.25a9.764 9.764 0 0 0-2.555.161A5.972 5.972 0 0 0 6 6v.75m0 0v3m0-3v3m0 0v3m0-3h3m-3 0H3m8.25-4.5v3m0 0v3m0-3h3m-3 0H9m-.75 0H4.875c-.621 0-1.125.504-1.125 1.125v4.5c0 .621.504 1.125 1.125 1.125H9" />
+                  </svg>
+                  Work & Organization
+                </label>
+                <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
+                  <div className="divider">📍 Location / Office</div>
 
               <fieldset className="fieldset">
                 <div className="form-control">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Search Engine Visibility</span>
+                      <span className="label-text font-semibold">Office Address</span>
                     </label>
-                    <div className="flex-1 flex items-center gap-4">
-                      <label className="label cursor-pointer gap-4">
-                        <span className="label-text">
-                          {formData.searchable
-                            ? "Your profile can be found in search engines"
-                            : "Your profile is hidden from search engines"}
-                        </span>
-                        <input
-                          type="checkbox"
-                          className="toggle toggle-primary"
-                          checked={formData.searchable}
-                          onChange={(e) =>
-                            setFormData({ ...formData, searchable: e.target.checked })
-                          }
-                        />
-                      </label>
-                    </div>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.office_address}
+                      onChange={(e) =>
+                        setFormData({ ...formData, office_address: e.target.value })
+                      }
+                      placeholder="123 Main St, Suite 100"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">City/Region</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.office_city}
+                      onChange={(e) =>
+                        setFormData({ ...formData, office_city: e.target.value })
+                      }
+                      placeholder="New York, NY"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Maps Link</span>
+                    </label>
+                    <input
+                      type="url"
+                      className="input input-bordered flex-1"
+                      value={formData.maps_link}
+                      onChange={(e) =>
+                        setFormData({ ...formData, maps_link: e.target.value })
+                      }
+                      placeholder="https://maps.google.com/..."
+                    />
                   </div>
                 </div>
                 <p className="label text-sm text-base-content/70 mt-2">
-                  When disabled, search engines will not index your profile page.
+                  Google Maps or Apple Maps deep link for directions
                 </p>
               </fieldset>
+
+              <div className="divider mt-6">🕒 Availability / Contact Preference</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Best Time to Contact</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.best_time_to_contact}
+                      onChange={(e) =>
+                        setFormData({ ...formData, best_time_to_contact: e.target.value })
+                      }
+                      placeholder="Weekdays 9am-5pm EST"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Preferred Method</span>
+                    </label>
+                    <select
+                      className="select select-bordered flex-1"
+                      value={formData.preferred_contact_method}
+                      onChange={(e) =>
+                        setFormData({ ...formData, preferred_contact_method: e.target.value })
+                      }
+                    >
+                      <option value="">Select preferred method</option>
+                      <option value="call">Call</option>
+                      <option value="text">Text</option>
+                      <option value="email">Email</option>
+                      <option value="whatsapp">WhatsApp</option>
+                    </select>
+                  </div>
+                </div>
+              </fieldset>
+
+              <div className="divider mt-6">🧑‍💼 Department / Team</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Department</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.department}
+                      onChange={(e) =>
+                        setFormData({ ...formData, department: e.target.value })
+                      }
+                      placeholder="Engineering"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Team Name</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.team_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, team_name: e.target.value })
+                      }
+                      placeholder="Frontend Team"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Manager (Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.manager}
+                      onChange={(e) =>
+                        setFormData({ ...formData, manager: e.target.value })
+                      }
+                      placeholder="John Doe"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+                  <div className="divider mt-6">📆 Calendar Scheduling</div>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Calendar Link</span>
+                        </label>
+                        <input
+                          type="url"
+                          className="input input-bordered flex-1"
+                          value={formData.calendar_link}
+                          onChange={(e) =>
+                            setFormData({ ...formData, calendar_link: e.target.value })
+                          }
+                          placeholder="https://calendly.com/username"
+                        />
+                      </div>
+                    </div>
+                    <p className="label text-sm text-base-content/70 mt-2">
+                      Calendly, Google Calendar, or other scheduling link
+                    </p>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Timezone</span>
+                        </label>
+                        <select
+                          className="select select-bordered flex-1"
+                          value={formData.timezone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, timezone: e.target.value })
+                          }
+                        >
+                          {timezones.map((tz) => (
+                            <option key={tz.value} value={tz.value}>
+                              {tz.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <div className="divider mt-6">🏢 Organization Details</div>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Company Name</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.company_name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, company_name: e.target.value })
+                          }
+                          placeholder="Acme Inc."
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Division</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.division}
+                          onChange={(e) =>
+                            setFormData({ ...formData, division: e.target.value })
+                          }
+                          placeholder="Technology Division"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Office Phone</span>
+                        </label>
+                        <input
+                          type="tel"
+                          className="input input-bordered flex-1"
+                          value={formData.office_phone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, office_phone: e.target.value })
+                          }
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Work Phone</span>
+                        </label>
+                        <input
+                          type="tel"
+                          className="input input-bordered flex-1"
+                          value={formData.work_phone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, work_phone: e.target.value })
+                          }
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Personal Phone</span>
+                        </label>
+                        <input
+                          type="tel"
+                          className="input input-bordered flex-1"
+                          value={formData.personal_phone}
+                          onChange={(e) =>
+                            setFormData({ ...formData, personal_phone: e.target.value })
+                          }
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+                </div>
+
+                {/* Personal Tab */}
+                <label className="tab">
+                  <input type="radio" name="profile_tabs" />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 me-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                  </svg>
+                  Personal
+                </label>
+                <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
+                  <div className="divider">🧾 Pronouns & Name Pronunciation</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Pronouns (Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.pronouns}
+                      onChange={(e) =>
+                        setFormData({ ...formData, pronouns: e.target.value })
+                      }
+                      placeholder="he/him, she/her, they/them"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Name Pronunciation</span>
+                    </label>
+                    <input
+                      type="text"
+                      className="input input-bordered flex-1"
+                      value={formData.name_pronunciation}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name_pronunciation: e.target.value })
+                      }
+                      placeholder="Phonetic spelling or audio link"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <div className="divider mt-6">🧠 Bio / About</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Bio</span>
+                    </label>
+                    <textarea
+                      className="textarea textarea-bordered flex-1"
+                      value={formData.bio}
+                      onChange={(e) =>
+                        setFormData({ ...formData, bio: e.target.value })
+                      }
+                      placeholder="1-3 sentence introduction about yourself"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <p className="label text-sm text-base-content/70 mt-2">
+                  A short bio helps distinguish people with similar roles
+                </p>
+              </fieldset>
+                </div>
+
+                {/* Media & Content Tab */}
+                <label className="tab">
+                  <input type="radio" name="profile_tabs" />
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-4 me-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0V12a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 12V5.25" />
+                  </svg>
+                  Media & Content
+                </label>
+                <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
+                  <div className="divider">🎧 Media / Content</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Podcast Link</span>
+                    </label>
+                    <input
+                      type="url"
+                      className="input input-bordered flex-1"
+                      value={formData.podcast_link}
+                      onChange={(e) =>
+                        setFormData({ ...formData, podcast_link: e.target.value })
+                      }
+                      placeholder="https://podcast.example.com"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">YouTube Channel</span>
+                    </label>
+                    <input
+                      type="url"
+                      className="input input-bordered flex-1"
+                      value={formData.youtube_channel}
+                      onChange={(e) =>
+                        setFormData({ ...formData, youtube_channel: e.target.value })
+                      }
+                      placeholder="https://youtube.com/@channel"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Sermon Series</span>
+                    </label>
+                    <input
+                      type="url"
+                      className="input input-bordered flex-1"
+                      value={formData.sermon_series}
+                      onChange={(e) =>
+                        setFormData({ ...formData, sermon_series: e.target.value })
+                      }
+                      placeholder="Link to sermon series"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Featured Talk</span>
+                    </label>
+                    <input
+                      type="url"
+                      className="input input-bordered flex-1"
+                      value={formData.featured_talk}
+                      onChange={(e) =>
+                        setFormData({ ...formData, featured_talk: e.target.value })
+                      }
+                      placeholder="Link to featured presentation or talk"
+                    />
+                  </div>
+                </div>
+              </fieldset>
+                </div>
+              </div>
 
               <div className="divider mt-8"></div>
 
@@ -1049,107 +1813,6 @@ export default function ProfilePage() {
                 ))}
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Delete Account Section */}
-        <div className="card bg-base-100 shadow-xl border-2 border-error">
-          <div className="card-body p-4 sm:p-6">
-            <h2 className="card-title text-error text-xl sm:text-2xl mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              Delete Account
-            </h2>
-
-            <div className="alert alert-error mb-4">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="font-semibold">
-                Warning: This action cannot be undone. This will permanently delete your account,
-                release all your card codes, and remove all your data.
-              </span>
-            </div>
-
-            <p className="text-base-content/70 mb-4">
-              If you are sure you want to delete your account, please enter your password below to confirm:
-            </p>
-
-            {deletePasswordError && (
-              <div className="alert alert-error mb-4">
-                <span>{deletePasswordError}</span>
-              </div>
-            )}
-
-            <div className="form-control mb-4">
-              <label className="label">
-                <span className="label-text font-semibold">Password</span>
-              </label>
-              <input
-                type="password"
-                className="input input-bordered input-error"
-                value={deletePassword}
-                onChange={(e) => {
-                  setDeletePassword(e.target.value);
-                  setDeletePasswordError(null);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && deletePassword) {
-                    handleDeleteAccount();
-                  }
-                }}
-                placeholder="Enter your password to confirm deletion"
-              />
-            </div>
-
-            <button
-              className="btn btn-error w-full sm:w-auto"
-              onClick={handleDeleteAccount}
-              disabled={!deletePassword || deleting || saving}
-            >
-              {deleting ? (
-                <>
-                  <span className="loading loading-spinner"></span>
-                  Deleting Account...
-                </>
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Delete My Account
-                </>
-              )}
-            </button>
           </div>
         </div>
       </div>
