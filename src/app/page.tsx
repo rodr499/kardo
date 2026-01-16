@@ -21,7 +21,7 @@ export default function HomePage() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
           <div className="card bg-base-100 shadow-lg border border-base-300">
             <div className="card-body items-center text-center">
               <div className="text-4xl mb-4">📱</div>
@@ -38,16 +38,6 @@ export default function HomePage() {
               <h3 className="card-title text-lg">Always Updated</h3>
               <p className="text-sm text-base-content/70">
                 Your contacts always have your latest information
-              </p>
-            </div>
-          </div>
-
-          <div className="card bg-base-100 shadow-lg border border-base-300">
-            <div className="card-body items-center text-center">
-              <div className="text-4xl mb-4">🔒</div>
-              <h3 className="card-title text-lg">Privacy First</h3>
-              <p className="text-sm text-base-content/70">
-                You control who sees your information
               </p>
             </div>
           </div>

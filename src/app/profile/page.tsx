@@ -60,6 +60,9 @@ interface Profile {
   office_phone: string | null;
   work_phone: string | null;
   personal_phone: string | null;
+  // Primary CTA
+  primary_cta_type: string | null;
+  primary_cta_value: string | null;
 }
 
 interface Card {
@@ -132,6 +135,9 @@ export default function ProfilePage() {
     office_phone: "",
     work_phone: "",
     personal_phone: "",
+    // Primary CTA
+    primary_cta_type: "save_contact",
+    primary_cta_value: "",
   });
 
   // Common country codes
@@ -314,6 +320,9 @@ export default function ProfilePage() {
           office_phone: profileData.office_phone || "",
           work_phone: profileData.work_phone || "",
           personal_phone: profileData.personal_phone || "",
+          // Primary CTA
+          primary_cta_type: profileData.primary_cta_type || "save_contact",
+          primary_cta_value: profileData.primary_cta_value || "",
         });
 
         // Set avatar preview if avatar_url exists
@@ -375,6 +384,9 @@ export default function ProfilePage() {
           office_phone: "",
           work_phone: "",
           personal_phone: "",
+          // Primary CTA
+          primary_cta_type: "save_contact",
+          primary_cta_value: "",
         });
       }
 
@@ -487,6 +499,9 @@ export default function ProfilePage() {
           office_phone: formData.office_phone.trim() || null,
           work_phone: formData.work_phone.trim() || null,
           personal_phone: formData.personal_phone.trim() || null,
+          // Primary CTA
+          primary_cta_type: formData.primary_cta_type || "save_contact",
+          primary_cta_value: formData.primary_cta_value.trim() || null,
         });
 
       if (updateError) throw updateError;
@@ -547,6 +562,9 @@ export default function ProfilePage() {
         office_phone: formData.office_phone.trim() || null,
         work_phone: formData.work_phone.trim() || null,
         personal_phone: formData.personal_phone.trim() || null,
+        // Primary CTA
+        primary_cta_type: formData.primary_cta_type || "save_contact",
+        primary_cta_value: formData.primary_cta_value.trim() || null,
       });
 
       setTimeout(() => setSuccess(false), 3000);
@@ -837,153 +855,231 @@ export default function ProfilePage() {
                 <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
                   <div className="divider">Profile Information</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Handle (URL)</span>
-                    </label>
-                    <div className="flex-1">
-                      <div className="input-group">
-                        <span>getkardo.app/u/</span>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Handle (URL)</span>
+                        </label>
+                        <div className="flex-1">
+                          <div className="input-group">
+                            <span>getkardo.app/u/</span>
+                            <input
+                              type="text"
+                              className="input input-bordered flex-1 font-mono"
+                              value={formData.handle}
+                              onChange={(e) =>
+                                setFormData({ ...formData, handle: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })
+                              }
+                              required
+                              pattern="[a-z0-9-]+"
+                              title="Only lowercase letters, numbers, and hyphens"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="label">
+                      Your profile will be at:{" "}
+                      <Link
+                        href={`/u/${formData.handle}`}
+                        target="_blank"
+                        className="link"
+                      >
+                        /u/{formData.handle}
+                      </Link>
+                    </p>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Display Name</span>
+                        </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1 font-mono"
-                          value={formData.handle}
+                          className="input input-bordered flex-1"
+                          value={formData.display_name}
                           onChange={(e) =>
-                            setFormData({ ...formData, handle: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })
+                            setFormData({ ...formData, display_name: e.target.value })
                           }
-                          required
-                          pattern="[a-z0-9-]+"
-                          title="Only lowercase letters, numbers, and hyphens"
+                          placeholder="John Doe"
                         />
                       </div>
                     </div>
-                  </div>
-                </div>
-                <p className="label">
-                  Your profile will be at:{" "}
-                  <Link
-                    href={`/u/${formData.handle}`}
-                    target="_blank"
-                    className="link"
-                  >
-                    /u/{formData.handle}
-                  </Link>
-                </p>
-              </fieldset>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Display Name</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.display_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, display_name: e.target.value })
-                      }
-                      placeholder="John Doe"
-                    />
-                  </div>
-                </div>
-              </fieldset>
-
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Title</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.title}
-                      onChange={(e) =>
-                        setFormData({ ...formData, title: e.target.value })
-                      }
-                      placeholder="Software Engineer"
-                    />
-                  </div>
-                </div>
-              </fieldset>
-
-              <div className="divider mt-6">Contact Information</div>
-
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Phone</span>
-                    </label>
-                    <div className="flex flex-1 gap-2">
-                      <select
-                        className="select select-bordered w-32"
-                        value={formData.countryCode}
-                        onChange={(e) =>
-                          setFormData({ ...formData, countryCode: e.target.value })
-                        }
-                      >
-                        {countryCodes.map((cc) => (
-                          <option key={cc.code} value={cc.code}>
-                            {cc.code} {cc.country}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="tel"
-                        className="input input-bordered flex-1"
-                        value={formData.phone}
-                        onChange={(e) =>
-                          setFormData({ ...formData, phone: e.target.value })
-                        }
-                        placeholder="(555) 123-4567"
-                      />
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Title</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.title}
+                          onChange={(e) =>
+                            setFormData({ ...formData, title: e.target.value })
+                          }
+                          placeholder="Software Engineer"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </fieldset>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Email</span>
-                    </label>
-                    <input
-                      type="email"
-                      className="input input-bordered flex-1"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      placeholder="you@example.com"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <div className="divider mt-6">Contact Information</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Website</span>
-                    </label>
-                    <input
-                      type="url"
-                      className="input input-bordered flex-1"
-                      value={formData.website}
-                      onChange={(e) =>
-                        setFormData({ ...formData, website: e.target.value })
-                      }
-                      placeholder="https://example.com"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Phone</span>
+                        </label>
+                        <div className="flex flex-1 gap-2">
+                          <select
+                            className="select select-bordered w-32"
+                            value={formData.countryCode}
+                            onChange={(e) =>
+                              setFormData({ ...formData, countryCode: e.target.value })
+                            }
+                          >
+                            {countryCodes.map((cc) => (
+                              <option key={cc.code} value={cc.code}>
+                                {cc.code} {cc.country}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            type="tel"
+                            className="input input-bordered flex-1"
+                            value={formData.phone}
+                            onChange={(e) =>
+                              setFormData({ ...formData, phone: e.target.value })
+                            }
+                            placeholder="(555) 123-4567"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Email</span>
+                        </label>
+                        <input
+                          type="email"
+                          className="input input-bordered flex-1"
+                          value={formData.email}
+                          onChange={(e) =>
+                            setFormData({ ...formData, email: e.target.value })
+                          }
+                          placeholder="you@example.com"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Website</span>
+                        </label>
+                        <input
+                          type="url"
+                          className="input input-bordered flex-1"
+                          value={formData.website}
+                          onChange={(e) =>
+                            setFormData({ ...formData, website: e.target.value })
+                          }
+                          placeholder="https://example.com"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <div className="divider mt-6">Primary Action Button</div>
+
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Button Type</span>
+                        </label>
+                        <select
+                          className="select select-bordered flex-1"
+                          value={formData.primary_cta_type}
+                          onChange={(e) =>
+                            setFormData({ ...formData, primary_cta_type: e.target.value, primary_cta_value: "" })
+                          }
+                        >
+                          <option value="save_contact">Add to Contacts</option>
+                          <option value="book_meeting">Book a Meeting</option>
+                          <option value="message_whatsapp">Message on WhatsApp</option>
+                          <option value="visit_website">Visit Website</option>
+                          <option value="email_me">Email Me</option>
+                          <option value="call_me">Call Me</option>
+                        </select>
+                      </div>
+                      <p className="label text-sm text-base-content/70 mt-2">
+                        This is the main button visitors see on your public profile page.
+                      </p>
+                    </div>
+                  </fieldset>
+
+                  {/* Conditional input for CTA value */}
+                  {(formData.primary_cta_type === "book_meeting" ||
+                    formData.primary_cta_type === "message_whatsapp" ||
+                    formData.primary_cta_type === "visit_website") && (
+                    <fieldset className="fieldset">
+                      <div className="form-control">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                          <label className="label sm:w-32">
+                            <span className="label-text font-semibold">
+                              {formData.primary_cta_type === "book_meeting"
+                                ? "Booking URL"
+                                : formData.primary_cta_type === "message_whatsapp"
+                                ? "Phone/URL (Optional)"
+                                : "Website URL (Optional)"}
+                            </span>
+                          </label>
+                          <div className="flex-1">
+                            <input
+                              type={formData.primary_cta_type === "message_whatsapp" ? "text" : "url"}
+                              className="input input-bordered flex-1"
+                              value={formData.primary_cta_value}
+                              onChange={(e) =>
+                                setFormData({ ...formData, primary_cta_value: e.target.value })
+                              }
+                              placeholder={
+                                formData.primary_cta_type === "book_meeting"
+                                  ? "https://calendly.com/your-name"
+                                  : formData.primary_cta_type === "message_whatsapp"
+                                  ? "1234567890 or https://wa.me/1234567890"
+                                  : "https://example.com"
+                              }
+                            />
+                            <p className="label text-xs text-base-content/60 mt-1">
+                              {formData.primary_cta_type === "book_meeting" && (
+                                <>If empty, will use your "Calendar Link" or "Website" field.</>
+                              )}
+                              {formData.primary_cta_type === "message_whatsapp" && (
+                                <>If empty, will use your profile phone number.</>
+                              )}
+                              {formData.primary_cta_type === "visit_website" && (
+                                <>If empty, will use your "Website" field.</>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </fieldset>
+                  )}
                 </div>
 
                 {/* Social & Links Tab */}
@@ -997,138 +1093,138 @@ export default function ProfilePage() {
                 <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
                   <div className="divider">Social Media</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">LinkedIn</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.linkedin}
-                      onChange={(e) =>
-                        setFormData({ ...formData, linkedin: e.target.value })
-                      }
-                      placeholder="linkedin.com/in/username"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">LinkedIn</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.linkedin}
+                          onChange={(e) =>
+                            setFormData({ ...formData, linkedin: e.target.value })
+                          }
+                          placeholder="linkedin.com/in/username"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Twitter/X</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.twitter}
-                      onChange={(e) =>
-                        setFormData({ ...formData, twitter: e.target.value })
-                      }
-                      placeholder="twitter.com/username or x.com/username"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Twitter/X</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.twitter}
+                          onChange={(e) =>
+                            setFormData({ ...formData, twitter: e.target.value })
+                          }
+                          placeholder="twitter.com/username or x.com/username"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Instagram</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.instagram}
-                      onChange={(e) =>
-                        setFormData({ ...formData, instagram: e.target.value })
-                      }
-                      placeholder="instagram.com/username"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Instagram</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.instagram}
+                          onChange={(e) =>
+                            setFormData({ ...formData, instagram: e.target.value })
+                          }
+                          placeholder="instagram.com/username"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Facebook</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.facebook}
-                      onChange={(e) =>
-                        setFormData({ ...formData, facebook: e.target.value })
-                      }
-                      placeholder="facebook.com/username"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Facebook</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.facebook}
+                          onChange={(e) =>
+                            setFormData({ ...formData, facebook: e.target.value })
+                          }
+                          placeholder="facebook.com/username"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">TikTok</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.tiktok}
-                      onChange={(e) =>
-                        setFormData({ ...formData, tiktok: e.target.value })
-                      }
-                      placeholder="tiktok.com/@username"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">TikTok</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.tiktok}
+                          onChange={(e) =>
+                            setFormData({ ...formData, tiktok: e.target.value })
+                          }
+                          placeholder="tiktok.com/@username"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">YouTube</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.youtube}
-                      onChange={(e) =>
-                        setFormData({ ...formData, youtube: e.target.value })
-                      }
-                      placeholder="youtube.com/@username or youtube.com/c/channel"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">YouTube</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.youtube}
+                          onChange={(e) =>
+                            setFormData({ ...formData, youtube: e.target.value })
+                          }
+                          placeholder="youtube.com/@username or youtube.com/c/channel"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">GitHub</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.github}
-                      onChange={(e) =>
-                        setFormData({ ...formData, github: e.target.value })
-                      }
-                      placeholder="github.com/username"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">GitHub</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.github}
+                          onChange={(e) =>
+                            setFormData({ ...formData, github: e.target.value })
+                          }
+                          placeholder="github.com/username"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
                   <div className="divider mt-6">💬 Messaging Links</div>
 
@@ -1220,168 +1316,168 @@ export default function ProfilePage() {
                 <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
                   <div className="divider">📍 Location / Office</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Office Address</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.office_address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, office_address: e.target.value })
-                      }
-                      placeholder="123 Main St, Suite 100"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Office Address</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.office_address}
+                          onChange={(e) =>
+                            setFormData({ ...formData, office_address: e.target.value })
+                          }
+                          placeholder="123 Main St, Suite 100"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">City/Region</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.office_city}
-                      onChange={(e) =>
-                        setFormData({ ...formData, office_city: e.target.value })
-                      }
-                      placeholder="New York, NY"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">City/Region</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.office_city}
+                          onChange={(e) =>
+                            setFormData({ ...formData, office_city: e.target.value })
+                          }
+                          placeholder="New York, NY"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Maps Link</span>
-                    </label>
-                    <input
-                      type="url"
-                      className="input input-bordered flex-1"
-                      value={formData.maps_link}
-                      onChange={(e) =>
-                        setFormData({ ...formData, maps_link: e.target.value })
-                      }
-                      placeholder="https://maps.google.com/..."
-                    />
-                  </div>
-                </div>
-                <p className="label text-sm text-base-content/70 mt-2">
-                  Google Maps or Apple Maps deep link for directions
-                </p>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Maps Link</span>
+                        </label>
+                        <input
+                          type="url"
+                          className="input input-bordered flex-1"
+                          value={formData.maps_link}
+                          onChange={(e) =>
+                            setFormData({ ...formData, maps_link: e.target.value })
+                          }
+                          placeholder="https://maps.google.com/..."
+                        />
+                      </div>
+                    </div>
+                    <p className="label text-sm text-base-content/70 mt-2">
+                      Google Maps or Apple Maps deep link for directions
+                    </p>
+                  </fieldset>
 
-              <div className="divider mt-6">🕒 Availability / Contact Preference</div>
+                  <div className="divider mt-6">🕒 Availability / Contact Preference</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Best Time to Contact</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.best_time_to_contact}
-                      onChange={(e) =>
-                        setFormData({ ...formData, best_time_to_contact: e.target.value })
-                      }
-                      placeholder="Weekdays 9am-5pm EST"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Best Time to Contact</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.best_time_to_contact}
+                          onChange={(e) =>
+                            setFormData({ ...formData, best_time_to_contact: e.target.value })
+                          }
+                          placeholder="Weekdays 9am-5pm EST"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Preferred Method</span>
-                    </label>
-                    <select
-                      className="select select-bordered flex-1"
-                      value={formData.preferred_contact_method}
-                      onChange={(e) =>
-                        setFormData({ ...formData, preferred_contact_method: e.target.value })
-                      }
-                    >
-                      <option value="">Select preferred method</option>
-                      <option value="call">Call</option>
-                      <option value="text">Text</option>
-                      <option value="email">Email</option>
-                      <option value="whatsapp">WhatsApp</option>
-                    </select>
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Preferred Method</span>
+                        </label>
+                        <select
+                          className="select select-bordered flex-1"
+                          value={formData.preferred_contact_method}
+                          onChange={(e) =>
+                            setFormData({ ...formData, preferred_contact_method: e.target.value })
+                          }
+                        >
+                          <option value="">Select preferred method</option>
+                          <option value="call">Call</option>
+                          <option value="text">Text</option>
+                          <option value="email">Email</option>
+                          <option value="whatsapp">WhatsApp</option>
+                        </select>
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <div className="divider mt-6">🧑‍💼 Department / Team</div>
+                  <div className="divider mt-6">🧑‍💼 Department / Team</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Department</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.department}
-                      onChange={(e) =>
-                        setFormData({ ...formData, department: e.target.value })
-                      }
-                      placeholder="Engineering"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Department</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.department}
+                          onChange={(e) =>
+                            setFormData({ ...formData, department: e.target.value })
+                          }
+                          placeholder="Engineering"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Team Name</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.team_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, team_name: e.target.value })
-                      }
-                      placeholder="Frontend Team"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Team Name</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.team_name}
+                          onChange={(e) =>
+                            setFormData({ ...formData, team_name: e.target.value })
+                          }
+                          placeholder="Frontend Team"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Manager (Optional)</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.manager}
-                      onChange={(e) =>
-                        setFormData({ ...formData, manager: e.target.value })
-                      }
-                      placeholder="John Doe"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Manager (Optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.manager}
+                          onChange={(e) =>
+                            setFormData({ ...formData, manager: e.target.value })
+                          }
+                          placeholder="John Doe"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
                   <div className="divider mt-6">📆 Calendar Scheduling</div>
 
@@ -1539,67 +1635,67 @@ export default function ProfilePage() {
                 <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
                   <div className="divider">🧾 Pronouns & Name Pronunciation</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Pronouns (Optional)</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.pronouns}
-                      onChange={(e) =>
-                        setFormData({ ...formData, pronouns: e.target.value })
-                      }
-                      placeholder="he/him, she/her, they/them"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Pronouns (Optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.pronouns}
+                          onChange={(e) =>
+                            setFormData({ ...formData, pronouns: e.target.value })
+                          }
+                          placeholder="he/him, she/her, they/them"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Name Pronunciation</span>
-                    </label>
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      value={formData.name_pronunciation}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name_pronunciation: e.target.value })
-                      }
-                      placeholder="Phonetic spelling or audio link"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Name Pronunciation</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="input input-bordered flex-1"
+                          value={formData.name_pronunciation}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name_pronunciation: e.target.value })
+                          }
+                          placeholder="Phonetic spelling or audio link"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <div className="divider mt-6">🧠 Bio / About</div>
+                  <div className="divider mt-6">🧠 Bio / About</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Bio</span>
-                    </label>
-                    <textarea
-                      className="textarea textarea-bordered flex-1"
-                      value={formData.bio}
-                      onChange={(e) =>
-                        setFormData({ ...formData, bio: e.target.value })
-                      }
-                      placeholder="1-3 sentence introduction about yourself"
-                      rows={3}
-                    />
-                  </div>
-                </div>
-                <p className="label text-sm text-base-content/70 mt-2">
-                  A short bio helps distinguish people with similar roles
-                </p>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Bio</span>
+                        </label>
+                        <textarea
+                          className="textarea textarea-bordered flex-1"
+                          value={formData.bio}
+                          onChange={(e) =>
+                            setFormData({ ...formData, bio: e.target.value })
+                          }
+                          placeholder="1-3 sentence introduction about yourself"
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                    <p className="label text-sm text-base-content/70 mt-2">
+                      A short bio helps distinguish people with similar roles
+                    </p>
+                  </fieldset>
                 </div>
 
                 {/* Media & Content Tab */}
@@ -1613,81 +1709,81 @@ export default function ProfilePage() {
                 <div className="tab-content bg-base-100 border-base-300 p-6 space-y-6">
                   <div className="divider">🎧 Media / Content</div>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Podcast Link</span>
-                    </label>
-                    <input
-                      type="url"
-                      className="input input-bordered flex-1"
-                      value={formData.podcast_link}
-                      onChange={(e) =>
-                        setFormData({ ...formData, podcast_link: e.target.value })
-                      }
-                      placeholder="https://podcast.example.com"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Podcast Link</span>
+                        </label>
+                        <input
+                          type="url"
+                          className="input input-bordered flex-1"
+                          value={formData.podcast_link}
+                          onChange={(e) =>
+                            setFormData({ ...formData, podcast_link: e.target.value })
+                          }
+                          placeholder="https://podcast.example.com"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">YouTube Channel</span>
-                    </label>
-                    <input
-                      type="url"
-                      className="input input-bordered flex-1"
-                      value={formData.youtube_channel}
-                      onChange={(e) =>
-                        setFormData({ ...formData, youtube_channel: e.target.value })
-                      }
-                      placeholder="https://youtube.com/@channel"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">YouTube Channel</span>
+                        </label>
+                        <input
+                          type="url"
+                          className="input input-bordered flex-1"
+                          value={formData.youtube_channel}
+                          onChange={(e) =>
+                            setFormData({ ...formData, youtube_channel: e.target.value })
+                          }
+                          placeholder="https://youtube.com/@channel"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Sermon Series</span>
-                    </label>
-                    <input
-                      type="url"
-                      className="input input-bordered flex-1"
-                      value={formData.sermon_series}
-                      onChange={(e) =>
-                        setFormData({ ...formData, sermon_series: e.target.value })
-                      }
-                      placeholder="Link to sermon series"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Sermon Series</span>
+                        </label>
+                        <input
+                          type="url"
+                          className="input input-bordered flex-1"
+                          value={formData.sermon_series}
+                          onChange={(e) =>
+                            setFormData({ ...formData, sermon_series: e.target.value })
+                          }
+                          placeholder="Link to sermon series"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
 
-              <fieldset className="fieldset">
-                <div className="form-control">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <label className="label sm:w-32">
-                      <span className="label-text font-semibold">Featured Talk</span>
-                    </label>
-                    <input
-                      type="url"
-                      className="input input-bordered flex-1"
-                      value={formData.featured_talk}
-                      onChange={(e) =>
-                        setFormData({ ...formData, featured_talk: e.target.value })
-                      }
-                      placeholder="Link to featured presentation or talk"
-                    />
-                  </div>
-                </div>
-              </fieldset>
+                  <fieldset className="fieldset">
+                    <div className="form-control">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <label className="label sm:w-32">
+                          <span className="label-text font-semibold">Featured Talk</span>
+                        </label>
+                        <input
+                          type="url"
+                          className="input input-bordered flex-1"
+                          value={formData.featured_talk}
+                          onChange={(e) =>
+                            setFormData({ ...formData, featured_talk: e.target.value })
+                          }
+                          placeholder="Link to featured presentation or talk"
+                        />
+                      </div>
+                    </div>
+                  </fieldset>
                 </div>
               </div>
 

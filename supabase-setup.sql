@@ -40,6 +40,19 @@ BEGIN
     ALTER TABLE profiles ADD COLUMN show_qr_code BOOLEAN DEFAULT TRUE;
   END IF;
   
+  -- Add primary_cta_type if it doesn't exist (dynamic CTA button type)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'primary_cta_type') THEN
+    ALTER TABLE profiles ADD COLUMN primary_cta_type TEXT DEFAULT 'save_contact' 
+      CHECK (primary_cta_type IN ('save_contact', 'book_meeting', 'message_whatsapp', 'visit_website', 'email_me', 'call_me'));
+  END IF;
+  
+  -- Add primary_cta_value if it doesn't exist (optional value for CTA button)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'primary_cta_value') THEN
+    ALTER TABLE profiles ADD COLUMN primary_cta_value TEXT;
+  END IF;
+  
   -- Add user_type if it doesn't exist (super_admin or cardholder)
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                  WHERE table_name = 'profiles' AND column_name = 'user_type') THEN
