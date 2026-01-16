@@ -155,6 +155,7 @@ CREATE POLICY "Users can delete their own profile"
 DROP POLICY IF EXISTS "Cards are viewable by everyone" ON cards;
 DROP POLICY IF EXISTS "Users can claim cards" ON cards;
 DROP POLICY IF EXISTS "Super admins can insert cards" ON cards;
+DROP POLICY IF EXISTS "Super admins can delete cards" ON cards;
 
 -- Anyone can read cards (for card lookup)
 CREATE POLICY "Cards are viewable by everyone"
@@ -187,6 +188,16 @@ CREATE POLICY "Super admins can update any card"
 CREATE POLICY "Super admins can insert cards"
   ON cards FOR INSERT
   WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND user_type = 'super_admin'
+    )
+  );
+
+-- Super admins can delete cards
+CREATE POLICY "Super admins can delete cards"
+  ON cards FOR DELETE
+  USING (
     EXISTS (
       SELECT 1 FROM profiles 
       WHERE id = auth.uid() AND user_type = 'super_admin'

@@ -30,7 +30,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<{
-    type: "unclaim" | "assign";
+    type: "unclaim" | "assign" | "delete";
     code: string;
     currentValue?: boolean;
   } | null>(null);
@@ -164,6 +164,8 @@ export default function AdminPage() {
 
       if (pendingAction.type === "unclaim") {
         await executeUnclaim(pendingAction.code);
+      } else if (pendingAction.type === "delete") {
+        await executeDelete(pendingAction.code);
       } else {
         await executeToggleAssignment(pendingAction.code, pendingAction.currentValue!);
       }
@@ -211,6 +213,34 @@ export default function AdminPage() {
 
   const unclaimCard = (code: string) => {
     requestPasswordConfirmation("unclaim", code);
+  };
+
+  const deleteCard = (code: string) => {
+    requestPasswordConfirmation("delete", code);
+  };
+
+  const executeDelete = async (code: string) => {
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const supabase = createSupabaseClient();
+      const { error: deleteError } = await supabase
+        .from("cards")
+        .delete()
+        .eq("code", code);
+
+      if (deleteError) throw deleteError;
+
+      // Reload cards
+      await loadCards(supabase);
+      setSuccess(`Card ${code} has been deleted successfully`);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to delete card");
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const executeUnclaim = async (code: string) => {
@@ -490,6 +520,8 @@ export default function AdminPage() {
                   <p className="mb-4 text-base-content/70">
                     {pendingAction?.type === "unclaim"
                       ? `Please enter your password to unclaim card ${pendingAction.code}.`
+                      : pendingAction?.type === "delete"
+                      ? `Please enter your password to delete card ${pendingAction.code}. This action cannot be undone.`
                       : `Please enter your password to unassign card ${pendingAction?.code} from NFC tag.`}
                   </p>
                   
@@ -716,38 +748,54 @@ export default function AdminPage() {
                           )}
                         </td>
                         <td>
-                          <div className="flex gap-2">
-                            <button
-                              className={`btn btn-sm ${
-                                card.nfc_tag_assigned
-                                  ? "btn-warning"
-                                  : "btn-success"
-                              }`}
-                              onClick={() => toggleNfcAssignment(card.code, card.nfc_tag_assigned)}
-                              disabled={updating === card.code}
-                            >
-                              {updating === card.code ? (
-                                <span className="loading loading-spinner"></span>
-                              ) : card.nfc_tag_assigned ? (
-                                "Unassign"
-                              ) : (
-                                "Assign"
-                              )}
-                            </button>
-                            {card.claimed_at && (
+                          <div className="flex gap-2 items-center">
+                            <div className="flex gap-2">
                               <button
-                                className="btn btn-sm btn-error"
-                                onClick={() => unclaimCard(card.code)}
+                                className={`btn btn-sm ${
+                                  card.nfc_tag_assigned
+                                    ? "btn-warning"
+                                    : "btn-success"
+                                }`}
+                                onClick={() => toggleNfcAssignment(card.code, card.nfc_tag_assigned)}
                                 disabled={updating === card.code}
-                                title="Unclaim this card from the user"
+                              >
+                                {updating === card.code ? (
+                                  <span className="loading loading-spinner"></span>
+                                ) : card.nfc_tag_assigned ? (
+                                  "Unassign"
+                                ) : (
+                                  "Assign"
+                                )}
+                              </button>
+                              {card.claimed_at && (
+                                <button
+                                  className="btn btn-sm btn-error"
+                                  onClick={() => unclaimCard(card.code)}
+                                  disabled={updating === card.code}
+                                  title="Unclaim this card from the user"
+                                >
+                                  {updating === card.code ? (
+                                    <span className="loading loading-spinner"></span>
+                                  ) : (
+                                    "Unclaim"
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                            <div className="ml-auto">
+                              <button
+                                className="btn btn-sm btn-error btn-outline"
+                                onClick={() => deleteCard(card.code)}
+                                disabled={updating === card.code}
+                                title="Permanently delete this card"
                               >
                                 {updating === card.code ? (
                                   <span className="loading loading-spinner"></span>
                                 ) : (
-                                  "Unclaim"
+                                  "Delete"
                                 )}
                               </button>
-                            )}
+                            </div>
                           </div>
                         </td>
                       </tr>
