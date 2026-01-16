@@ -53,7 +53,7 @@ export default async function ProfilePage({
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,searchable,linkedin,twitter,instagram,facebook,tiktok,youtube,github")
+    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,qr_code_url,searchable,linkedin,twitter,instagram,facebook,tiktok,youtube,github")
     .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 
@@ -146,6 +146,21 @@ export default async function ProfilePage({
                 </Link>
               ) : null}
             </div>
+
+            {data.qr_code_url && (
+              <div className="mt-6 pt-6 border-t border-base-300">
+                <h3 className="text-sm font-semibold mb-3 text-base-content/70 text-center">Scan to Connect</h3>
+                <div className="flex justify-center">
+                  <div className="border-2 border-base-300 rounded-lg p-4 bg-base-200">
+                    <img
+                      src={data.qr_code_url}
+                      alt="QR Code"
+                      className="w-48 h-48 object-contain"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Social Media Links */}
             {(data.linkedin || data.twitter || data.instagram || data.facebook || data.tiktok || data.youtube || data.github) && (

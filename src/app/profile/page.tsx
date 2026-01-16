@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import QRCode from "qrcode";
 
 interface Profile {
   id: string;
@@ -15,6 +16,7 @@ interface Profile {
   email: string | null;
   website: string | null;
   avatar_url: string | null;
+  qr_code_url: string | null;
   user_type: string | null;
   searchable: boolean | null;
   linkedin: string | null;
@@ -40,10 +42,13 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingQR, setUploadingQR] = useState(false);
+  const [generatingQR, setGeneratingQR] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [qrCodePreview, setQrCodePreview] = useState<string | null>(null);
   const [deletePassword, setDeletePassword] = useState("");
   const [deletePasswordError, setDeletePasswordError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -111,7 +116,7 @@ export default function ProfilePage() {
       // Load profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*,qr_code_url")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -157,6 +162,10 @@ export default function ProfilePage() {
         // Set avatar preview if avatar_url exists
         if (profileData.avatar_url) {
           setAvatarPreview(profileData.avatar_url);
+        }
+        // Set QR code preview if qr_code_url exists
+        if (profileData.qr_code_url) {
+          setQrCodePreview(profileData.qr_code_url);
         }
       } else {
         // Create profile if it doesn't exist
@@ -269,9 +278,10 @@ export default function ProfilePage() {
         country_code: formData.countryCode || "+1",
         email: formData.email.trim() || null,
         website: formData.website.trim() || null,
-        avatar_url: profile?.avatar_url || null,
-        user_type: profile?.user_type || null,
-        searchable: formData.searchable ?? false,
+          avatar_url: profile?.avatar_url || null,
+          qr_code_url: profile?.qr_code_url || null,
+          user_type: profile?.user_type || null,
+          searchable: formData.searchable ?? false,
         linkedin: formData.linkedin.trim() || null,
         twitter: formData.twitter.trim() || null,
         instagram: formData.instagram.trim() || null,
@@ -511,6 +521,211 @@ export default function ProfilePage() {
 
     // Reset file input
     e.target.value = "";
+  };
+
+  const handleQRCodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size must be less than 5MB");
+      return;
+    }
+
+    // Create preview immediately
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setQrCodePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Auto-upload immediately
+    const supabase = createSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    setUploadingQR(true);
+    setError(null);
+
+    try {
+      // Generate unique filename
+      const fileExt = file.name.split(".").pop();
+      const fileName = `qr-${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = fileName;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+      // Delete old QR code if it exists
+      if (profile?.qr_code_url) {
+        // Extract filename from URL
+        const urlParts = profile.qr_code_url.split("/");
+        const oldFileName = urlParts[urlParts.length - 1];
+        if (oldFileName && oldFileName.startsWith("qr-")) {
+          await supabase.storage.from("avatars").remove([oldFileName]);
+        }
+      }
+
+      // Update profile with new QR code URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ qr_code_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setProfile({
+        ...profile!,
+        qr_code_url: publicUrl,
+      });
+      setQrCodePreview(null); // Clear preview since we have the real URL now
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to upload QR code");
+      setQrCodePreview(null); // Clear preview on error
+    } finally {
+      setUploadingQR(false);
+    }
+
+    // Reset file input
+    e.target.value = "";
+  };
+
+  const handleGenerateQRCode = async () => {
+    if (!profile?.handle) {
+      setError("Please save your profile with a handle first");
+      return;
+    }
+
+    setGeneratingQR(true);
+    setError(null);
+
+    try {
+      const profileUrl = `${window.location.origin}/u/${encodeURIComponent(profile.handle)}`;
+      
+      // Generate QR code as data URL
+      const qrCodeDataUrl = await QRCode.toDataURL(profileUrl, {
+        width: 512,
+        margin: 2,
+        color: {
+          dark: "#000000",
+          light: "#FFFFFF",
+        },
+      });
+
+      // Convert data URL to blob
+      const response = await fetch(qrCodeDataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `qr-${profile.handle}.png`, { type: "image/png" });
+
+      // Upload to Supabase Storage
+      const supabase = createSupabaseClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const fileName = `qr-${user.id}-${Date.now()}.png`;
+      const filePath = fileName;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+      // Delete old QR code if it exists
+      if (profile?.qr_code_url) {
+        const urlParts = profile.qr_code_url.split("/");
+        const oldFileName = urlParts[urlParts.length - 1];
+        if (oldFileName && oldFileName.startsWith("qr-")) {
+          await supabase.storage.from("avatars").remove([oldFileName]);
+        }
+      }
+
+      // Update profile with new QR code URL
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ qr_code_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setProfile({
+        ...profile!,
+        qr_code_url: publicUrl,
+      });
+      setQrCodePreview(publicUrl);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to generate QR code");
+    } finally {
+      setGeneratingQR(false);
+    }
+  };
+
+  const handleDownloadQRCode = async () => {
+    if (!profile?.qr_code_url && !qrCodePreview) {
+      setError("No QR code available to download");
+      return;
+    }
+
+    try {
+      const qrUrl = qrCodePreview || profile?.qr_code_url;
+      if (!qrUrl) return;
+
+      const response = await fetch(qrUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `qr-${profile?.handle || "profile"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setShareMessage("QR code downloaded!");
+      setTimeout(() => setShareMessage(null), 3000);
+    } catch (err: any) {
+      setError(err.message || "Failed to download QR code");
+    }
   };
 
   // Load theme preference on mount and set page title
@@ -925,6 +1140,171 @@ export default function ProfilePage() {
                 <p className="label text-sm text-base-content/70 mt-2">
                   When disabled, search engines will not index your profile page.
                 </p>
+              </fieldset>
+
+              <div className="divider mt-6">QR Code</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col gap-4 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      <label className="label sm:w-32">
+                        <span className="label-text font-semibold">QR Code</span>
+                      </label>
+                      <div className="flex-1">
+                        {(qrCodePreview || profile?.qr_code_url) && (
+                          <div className="mb-4 flex flex-col items-center gap-3">
+                            <div className="border-2 border-base-300 rounded-lg p-4 bg-base-200">
+                              <img
+                                src={qrCodePreview || profile?.qr_code_url || ""}
+                                alt="QR Code"
+                                className="w-48 h-48 object-contain"
+                              />
+                            </div>
+                            <div className="flex flex-wrap gap-2 justify-center">
+                              <button
+                                type="button"
+                                onClick={handleDownloadQRCode}
+                                className="btn btn-sm btn-outline"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                                Download
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleGenerateQRCode}
+                                disabled={generatingQR || !profile?.handle}
+                                className="btn btn-sm btn-primary"
+                              >
+                                {generatingQR ? (
+                                  <>
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                    Regenerating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <svg
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      className="h-4 w-4"
+                                      viewBox="0 0 20 20"
+                                      fill="currentColor"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    Regenerate
+                                  </>
+                                )}
+                              </button>
+                              <label className="btn btn-sm btn-outline cursor-pointer">
+                                {uploadingQR ? (
+                                  <span className="loading loading-spinner loading-xs"></span>
+                                ) : (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                )}
+                                Replace
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={handleQRCodeChange}
+                                  disabled={uploadingQR}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        )}
+                        {!qrCodePreview && !profile?.qr_code_url && (
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <button
+                              type="button"
+                              onClick={handleGenerateQRCode}
+                              disabled={generatingQR || !profile?.handle}
+                              className="btn btn-primary btn-sm"
+                            >
+                              {generatingQR ? (
+                                <>
+                                  <span className="loading loading-spinner loading-xs"></span>
+                                  Generating...
+                                </>
+                              ) : (
+                                <>
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-4 w-4"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                  Generate QR Code
+                                </>
+                              )}
+                            </button>
+                            <label className="btn btn-outline btn-sm cursor-pointer">
+                              {uploadingQR ? (
+                                <span className="loading loading-spinner loading-xs"></span>
+                              ) : (
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                              Upload QR Code
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*"
+                                onChange={handleQRCodeChange}
+                                disabled={uploadingQR}
+                              />
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-sm text-base-content/70 mt-2 break-words max-w-full">
+                      Generate a QR code for your profile URL or upload your own custom QR code. The QR code will be displayed on your public profile page.
+                    </p>
+                  </div>
+                </div>
               </fieldset>
 
               <div className="divider mt-8"></div>

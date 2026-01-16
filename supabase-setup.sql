@@ -28,6 +28,12 @@ BEGIN
     ALTER TABLE profiles ADD COLUMN avatar_url TEXT;
   END IF;
   
+  -- Add qr_code_url if it doesn't exist
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'qr_code_url') THEN
+    ALTER TABLE profiles ADD COLUMN qr_code_url TEXT;
+  END IF;
+  
   -- Add user_type if it doesn't exist (super_admin or cardholder)
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                  WHERE table_name = 'profiles' AND column_name = 'user_type') THEN
