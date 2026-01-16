@@ -35,6 +35,9 @@ export default function AdminPage() {
     currentValue?: boolean;
   } | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [generatingCards, setGeneratingCards] = useState(false);
+  const [cardCount, setCardCount] = useState("10");
+  const [codeLength, setCodeLength] = useState("8");
 
   useEffect(() => {
     document.title = "Admin Dashboard - Kardo";
@@ -275,6 +278,53 @@ export default function AdminPage() {
     }
   };
 
+  const generateCards = async () => {
+    setGeneratingCards(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const count = parseInt(cardCount, 10);
+      const length = parseInt(codeLength, 10);
+
+      if (isNaN(count) || count < 1 || count > 1000) {
+        throw new Error("Count must be between 1 and 1000");
+      }
+
+      if (isNaN(length) || length < 6 || length > 16) {
+        throw new Error("Code length must be between 6 and 16");
+      }
+
+      const response = await fetch("/api/admin/cards/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ count, codeLength: length }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate cards");
+      }
+
+      // Reload cards
+      const supabase = createSupabaseClient();
+      await loadCards(supabase);
+
+      setSuccess(
+        `Successfully generated ${data.count} card${data.count !== 1 ? "s" : ""}!`
+      );
+      setTimeout(() => setSuccess(null), 5000);
+    } catch (err: any) {
+      setError(err.message || "Failed to generate cards");
+    } finally {
+      setGeneratingCards(false);
+    }
+  };
+
   // Filter cards
   const filteredCards = cards.filter((card) => {
     // Search filter
@@ -340,6 +390,83 @@ export default function AdminPage() {
                     </label>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* Card Generation Section */}
+            <div className="card bg-base-200 shadow mb-6">
+              <div className="card-body">
+                <h2 className="card-title text-xl mb-4">Generate Cards</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold">
+                        Number of Cards
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="1000"
+                      className="input input-bordered"
+                      value={cardCount}
+                      onChange={(e) => setCardCount(e.target.value)}
+                      placeholder="10"
+                      disabled={generatingCards}
+                    />
+                    <div className="label">
+                      <span className="label-text-alt opacity-60">
+                        Between 1 and 1000
+                      </span>
+                    </div>
+                  </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold">
+                        Code Length
+                      </span>
+                    </label>
+                    <input
+                      type="number"
+                      min="6"
+                      max="16"
+                      className="input input-bordered"
+                      value={codeLength}
+                      onChange={(e) => setCodeLength(e.target.value)}
+                      placeholder="8"
+                      disabled={generatingCards}
+                    />
+                    <div className="label">
+                      <span className="label-text-alt opacity-60">
+                        Between 6 and 16 characters
+                      </span>
+                    </div>
+                  </div>
+                  <div className="form-control flex justify-end">
+                    <label className="label">
+                      <span className="label-text">&nbsp;</span>
+                    </label>
+                    <button
+                      className="btn btn-primary"
+                      onClick={generateCards}
+                      disabled={generatingCards}
+                    >
+                      {generatingCards ? (
+                        <>
+                          <span className="loading loading-spinner"></span>
+                          Generating...
+                        </>
+                      ) : (
+                        "Generate Cards"
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-sm text-base-content/70 mt-2">
+                  Cards will be generated with random codes using Crockford
+                  Base32 format (no I, O, 0, or 1). Each code is unique and
+                  will have status "unclaimed".
+                </p>
               </div>
             </div>
 
