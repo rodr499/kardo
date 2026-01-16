@@ -30,7 +30,7 @@ function generateCardCode(length: number = 8): string {
 async function generateUniqueCodes(
   count: number,
   length: number,
-  supabase: ReturnType<typeof createSupabaseServerClient>
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>
 ): Promise<string[]> {
   const codes: string[] = [];
   const maxAttempts = count * 100; // Prevent infinite loops
