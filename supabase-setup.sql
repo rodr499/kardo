@@ -34,6 +34,12 @@ BEGIN
     ALTER TABLE profiles ADD COLUMN qr_code_url TEXT;
   END IF;
   
+  -- Add show_qr_code if it doesn't exist (boolean to control QR code visibility on public profile)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                 WHERE table_name = 'profiles' AND column_name = 'show_qr_code') THEN
+    ALTER TABLE profiles ADD COLUMN show_qr_code BOOLEAN DEFAULT TRUE;
+  END IF;
+  
   -- Add user_type if it doesn't exist (super_admin or cardholder)
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
                  WHERE table_name = 'profiles' AND column_name = 'user_type') THEN

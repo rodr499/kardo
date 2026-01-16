@@ -53,7 +53,7 @@ export default async function ProfilePage({
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,qr_code_url,searchable,linkedin,twitter,instagram,facebook,tiktok,youtube,github,office_address,office_city,maps_link,best_time_to_contact,preferred_contact_method,department,team_name,manager,pronouns,name_pronunciation,bio,whatsapp,signal,telegram,sms_link,calendar_link,timezone,podcast_link,youtube_channel,sermon_series,featured_talk,company_name,division,office_phone,work_phone,personal_phone")
+    .select("handle,display_name,title,phone,country_code,email,website,avatar_url,qr_code_url,show_qr_code,searchable,linkedin,twitter,instagram,facebook,tiktok,youtube,github,office_address,office_city,maps_link,best_time_to_contact,preferred_contact_method,department,team_name,manager,pronouns,name_pronunciation,bio,whatsapp,signal,telegram,sms_link,calendar_link,timezone,podcast_link,youtube_channel,sermon_series,featured_talk,company_name,division,office_phone,work_phone,personal_phone")
     .ilike("handle", handle) // Case-insensitive lookup
     .maybeSingle();
 
@@ -222,7 +222,7 @@ export default async function ProfilePage({
             </div>
 
             {/* Availability */}
-            {(data.best_time_to_contact || data.preferred_contact_method) && (
+            {(data.best_time_to_contact || data.preferred_contact_method || data.timezone) && (
               <div className="mt-4 pt-4 border-t border-base-300">
                 <h3 className="text-sm font-semibold mb-2 text-base-content/70">Availability</h3>
                 {data.best_time_to_contact && (
@@ -231,8 +231,13 @@ export default async function ProfilePage({
                   </p>
                 )}
                 {data.preferred_contact_method && (
-                  <p className="text-sm text-base-content/80">
+                  <p className="text-sm text-base-content/80 mb-1">
                     <span className="font-semibold">Preferred method:</span> {data.preferred_contact_method}
+                  </p>
+                )}
+                {data.timezone && (
+                  <p className="text-sm text-base-content/80">
+                    <span className="font-semibold">Timezone:</span> {data.timezone}
                   </p>
                 )}
               </div>
@@ -347,7 +352,7 @@ export default async function ProfilePage({
               </div>
             )}
 
-            {data.qr_code_url && (
+            {data.qr_code_url && data.show_qr_code !== false && (
               <div className="mt-6 pt-6 border-t border-base-300">
                 <h3 className="text-sm font-semibold mb-3 text-base-content/70 text-center">Scan to Connect</h3>
                 <div className="flex justify-center">
