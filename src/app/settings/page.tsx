@@ -11,6 +11,7 @@ interface Profile {
   display_name: string | null;
   searchable: boolean | null;
   qr_code_url: string | null;
+  show_qr_code: boolean | null;
 }
 
 export default function SettingsPage() {
@@ -29,6 +30,7 @@ export default function SettingsPage() {
 
   const [formData, setFormData] = useState({
     searchable: false,
+    show_qr_code: true,
   });
 
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function SettingsPage() {
       // Load profile
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("id,handle,display_name,searchable,qr_code_url")
+        .select("id,handle,display_name,searchable,qr_code_url,show_qr_code")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -60,6 +62,7 @@ export default function SettingsPage() {
         setProfile(profileData);
         setFormData({
           searchable: profileData.searchable ?? false,
+          show_qr_code: profileData.show_qr_code ?? true,
         });
 
         // Set QR code preview if qr_code_url exists
@@ -95,6 +98,7 @@ export default function SettingsPage() {
         .from("profiles")
         .update({
           searchable: formData.searchable ?? false,
+          show_qr_code: formData.show_qr_code ?? true,
         })
         .eq("id", user.id);
 
@@ -105,6 +109,7 @@ export default function SettingsPage() {
         setProfile({
           ...profile,
           searchable: formData.searchable ?? false,
+          show_qr_code: formData.show_qr_code ?? true,
         });
       }
       setTimeout(() => setSuccess(null), 3000);
@@ -442,6 +447,36 @@ export default function SettingsPage() {
               </fieldset>
 
               <div className="divider mt-6">QR Code</div>
+
+              <fieldset className="fieldset">
+                <div className="form-control">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <label className="label sm:w-32">
+                      <span className="label-text font-semibold">Show on Public Profile</span>
+                    </label>
+                    <div className="flex-1 flex items-center gap-4">
+                      <label className="label cursor-pointer gap-4">
+                        <span className="label-text">
+                          {formData.show_qr_code
+                            ? "QR code is visible on your public profile"
+                            : "QR code is hidden from your public profile"}
+                        </span>
+                        <input
+                          type="checkbox"
+                          className="toggle toggle-primary"
+                          checked={formData.show_qr_code}
+                          onChange={(e) =>
+                            setFormData({ ...formData, show_qr_code: e.target.checked })
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  <p className="label text-sm text-base-content/70 mt-2">
+                    When enabled, visitors to your public profile can see and scan your QR code.
+                  </p>
+                </div>
+              </fieldset>
 
               <fieldset className="fieldset">
                 <div className="form-control">
