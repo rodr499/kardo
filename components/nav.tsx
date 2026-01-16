@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createSupabaseClient } from "@/lib/supabase/client";
 
 export default function Nav() {
@@ -97,8 +98,15 @@ export default function Nav() {
   return (
     <nav className="navbar bg-base-100 shadow-sm">
       <div className="flex-1">
-        <Link href="/" className="btn btn-ghost text-xl font-bold">
-          Kardo
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/kardo_logo.png"
+            alt="Kardo"
+            width={120}
+            height={40}
+            className="h-8 w-auto"
+            priority
+          />
         </Link>
       </div>
       
