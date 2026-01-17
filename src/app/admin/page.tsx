@@ -532,7 +532,7 @@ export default function AdminPage() {
                   )}
 
                   <div className="form-control mb-4">
-                    <label className="label">
+                    <label className="label sm:w-32">
                       <span className="label-text">Password</span>
                     </label>
                     <input
