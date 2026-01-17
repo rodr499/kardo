@@ -899,7 +899,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.display_name}
                           onChange={(e) =>
                             setFormData({ ...formData, display_name: e.target.value })
@@ -918,7 +918,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.title}
                           onChange={(e) =>
                             setFormData({ ...formData, title: e.target.value })
@@ -953,7 +953,7 @@ export default function ProfilePage() {
                           </select>
                           <input
                             type="tel"
-                            className="input input-bordered flex-1"
+                            className="input input-bordered"
                             value={formData.phone}
                             onChange={(e) =>
                               setFormData({ ...formData, phone: e.target.value })
@@ -973,7 +973,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="email"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.email}
                           onChange={(e) =>
                             setFormData({ ...formData, email: e.target.value })
@@ -992,7 +992,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="url"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.website}
                           onChange={(e) =>
                             setFormData({ ...formData, website: e.target.value })
@@ -1012,7 +1012,7 @@ export default function ProfilePage() {
                           <span className="label-text font-semibold">Button Type</span>
                         </label>
                         <select
-                          className="select select-bordered flex-1"
+                          className="select select-bordered"
                           value={formData.primary_cta_type}
                           onChange={(e) =>
                             setFormData({ ...formData, primary_cta_type: e.target.value, primary_cta_value: "" })
@@ -1051,7 +1051,7 @@ export default function ProfilePage() {
                             <div className="flex-1">
                               <input
                                 type={formData.primary_cta_type === "message_whatsapp" ? "text" : "url"}
-                                className="input input-bordered flex-1"
+                                className="input input-bordered"
                                 value={formData.primary_cta_value}
                                 onChange={(e) =>
                                   setFormData({ ...formData, primary_cta_value: e.target.value })
@@ -1101,7 +1101,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.linkedin}
                           onChange={(e) =>
                             setFormData({ ...formData, linkedin: e.target.value })
@@ -1120,7 +1120,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.twitter}
                           onChange={(e) =>
                             setFormData({ ...formData, twitter: e.target.value })
@@ -1139,7 +1139,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.instagram}
                           onChange={(e) =>
                             setFormData({ ...formData, instagram: e.target.value })
@@ -1158,7 +1158,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.facebook}
                           onChange={(e) =>
                             setFormData({ ...formData, facebook: e.target.value })
@@ -1177,7 +1177,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.tiktok}
                           onChange={(e) =>
                             setFormData({ ...formData, tiktok: e.target.value })
@@ -1196,7 +1196,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.youtube}
                           onChange={(e) =>
                             setFormData({ ...formData, youtube: e.target.value })
@@ -1215,7 +1215,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.github}
                           onChange={(e) =>
                             setFormData({ ...formData, github: e.target.value })
@@ -1236,7 +1236,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.whatsapp}
                           onChange={(e) =>
                             setFormData({ ...formData, whatsapp: e.target.value })
@@ -1255,7 +1255,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.signal}
                           onChange={(e) =>
                             setFormData({ ...formData, signal: e.target.value })
@@ -1274,7 +1274,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.telegram}
                           onChange={(e) =>
                             setFormData({ ...formData, telegram: e.target.value })
@@ -1293,7 +1293,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.sms_link}
                           onChange={(e) =>
                             setFormData({ ...formData, sms_link: e.target.value })
@@ -1324,7 +1324,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.office_address}
                           onChange={(e) =>
                             setFormData({ ...formData, office_address: e.target.value })
@@ -1343,7 +1343,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.office_city}
                           onChange={(e) =>
                             setFormData({ ...formData, office_city: e.target.value })
@@ -1362,7 +1362,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="url"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.maps_link}
                           onChange={(e) =>
                             setFormData({ ...formData, maps_link: e.target.value })
@@ -1386,7 +1386,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.best_time_to_contact}
                           onChange={(e) =>
                             setFormData({ ...formData, best_time_to_contact: e.target.value })
@@ -1404,7 +1404,7 @@ export default function ProfilePage() {
                           <span className="label-text font-semibold">Preferred Method</span>
                         </label>
                         <select
-                          className="select select-bordered flex-1"
+                          className="select select-bordered"
                           value={formData.preferred_contact_method}
                           onChange={(e) =>
                             setFormData({ ...formData, preferred_contact_method: e.target.value })
@@ -1430,7 +1430,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.department}
                           onChange={(e) =>
                             setFormData({ ...formData, department: e.target.value })
@@ -1449,7 +1449,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.team_name}
                           onChange={(e) =>
                             setFormData({ ...formData, team_name: e.target.value })
@@ -1468,7 +1468,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.manager}
                           onChange={(e) =>
                             setFormData({ ...formData, manager: e.target.value })
@@ -1489,7 +1489,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="url"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.calendar_link}
                           onChange={(e) =>
                             setFormData({ ...formData, calendar_link: e.target.value })
@@ -1510,7 +1510,7 @@ export default function ProfilePage() {
                           <span className="label-text font-semibold">Timezone</span>
                         </label>
                         <select
-                          className="select select-bordered flex-1"
+                          className="select select-bordered"
                           value={formData.timezone}
                           onChange={(e) =>
                             setFormData({ ...formData, timezone: e.target.value })
@@ -1536,7 +1536,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.company_name}
                           onChange={(e) =>
                             setFormData({ ...formData, company_name: e.target.value })
@@ -1555,7 +1555,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.division}
                           onChange={(e) =>
                             setFormData({ ...formData, division: e.target.value })
@@ -1574,7 +1574,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="tel"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.office_phone}
                           onChange={(e) =>
                             setFormData({ ...formData, office_phone: e.target.value })
@@ -1593,7 +1593,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="tel"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.work_phone}
                           onChange={(e) =>
                             setFormData({ ...formData, work_phone: e.target.value })
@@ -1612,7 +1612,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="tel"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.personal_phone}
                           onChange={(e) =>
                             setFormData({ ...formData, personal_phone: e.target.value })
@@ -1643,7 +1643,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.pronouns}
                           onChange={(e) =>
                             setFormData({ ...formData, pronouns: e.target.value })
@@ -1662,7 +1662,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="text"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.name_pronunciation}
                           onChange={(e) =>
                             setFormData({ ...formData, name_pronunciation: e.target.value })
@@ -1682,7 +1682,7 @@ export default function ProfilePage() {
                           <span className="label-text font-semibold">Bio</span>
                         </label>
                         <textarea
-                          className="textarea textarea-bordered flex-1"
+                          className="textarea textarea-bordered"
                           value={formData.bio}
                           onChange={(e) =>
                             setFormData({ ...formData, bio: e.target.value })
@@ -1717,7 +1717,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="url"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.podcast_link}
                           onChange={(e) =>
                             setFormData({ ...formData, podcast_link: e.target.value })
@@ -1736,7 +1736,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="url"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.youtube_channel}
                           onChange={(e) =>
                             setFormData({ ...formData, youtube_channel: e.target.value })
@@ -1755,7 +1755,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="url"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.sermon_series}
                           onChange={(e) =>
                             setFormData({ ...formData, sermon_series: e.target.value })
@@ -1774,7 +1774,7 @@ export default function ProfilePage() {
                         </label>
                         <input
                           type="url"
-                          className="input input-bordered flex-1"
+                          className="input input-bordered"
                           value={formData.featured_talk}
                           onChange={(e) =>
                             setFormData({ ...formData, featured_talk: e.target.value })
@@ -1820,7 +1820,7 @@ export default function ProfilePage() {
                       href={`/u/${encodeURIComponent(profile.handle)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="btn btn-outline flex-1 sm:flex-none"
+                      className="btn btn-outline sm:flex-none"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -1839,7 +1839,7 @@ export default function ProfilePage() {
                     </a>
                     <button
                       onClick={() => handleShare(profile.handle, false)}
-                      className="btn btn-outline flex-1 sm:flex-none"
+                      className="btn btn-outline sm:flex-none"
                       type="button"
                     >
                       <svg
@@ -1863,7 +1863,7 @@ export default function ProfilePage() {
           <div className="card-body p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
               <h2 className="card-title text-xl sm:text-2xl">My Cards</h2>
-              <Link href="/claim" className="btn btn-sm btn-primary w-full sm:w-auto">
+              <Link href="/claim" className="btn btn-primary w-full sm:w-auto">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5"

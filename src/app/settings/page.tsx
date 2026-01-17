@@ -723,7 +723,7 @@ export default function SettingsPage() {
             )}
 
             <div className="form-control mb-4">
-              <label className="label">
+              <label className="label sm:w-32">
                 <span className="label-text font-semibold">Password</span>
               </label>
               <input
